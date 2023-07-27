@@ -1,10 +1,10 @@
-import { ExecuteValidator } from '../interface';
-import rules from '../rule/index';
+import { ExecuteValidator } from '../interface.ts';
+import rules from '../rule/index.ts';
 
 const array: ExecuteValidator = (rule, value, callback, source, options) => {
   const errors: string[] = [];
   const validate =
-    rule.required || (!rule.required && source.hasOwnProperty(rule.field));
+    rule.required || (!rule.required && Object.prototype.hasOwnProperty.call(source, rule?.field || ''));
   if (validate) {
     if ((value === undefined || value === null) && !rule.required) {
       return callback();

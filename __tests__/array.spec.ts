@@ -1,7 +1,7 @@
-import Schema from '../src';
-
-describe('array', () => {
-  it('works for type', done => {
+import Schema from '../src/index.ts';
+import { assertEquals } from 'assert'
+Deno.test('array', (it) => {
+  it.step('works for type', () => {
     new Schema({
       v: {
         type: 'array',
@@ -11,14 +11,13 @@ describe('array', () => {
         v: '',
       },
       errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v is not an array');
-        done();
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, 'v is not an array');
       },
     );
   });
 
-  it('works for type and required', done => {
+  it.step('works for type and required', done => {
     new Schema({
       v: {
         required: true,

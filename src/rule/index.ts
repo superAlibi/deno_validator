@@ -1,14 +1,14 @@
-import required from './required';
-import whitespace from './whitespace';
-import type from './type';
-import range from './range';
-import enumRule from './enum';
-import pattern from './pattern';
+import required from './required.ts';
+import whitespace from './whitespace.ts';
+import typeRule from './type.ts';
+import range from './range.ts';
+import enumRule from './enum.ts';
+import pattern from './pattern.ts';
 
 export default {
   required,
   whitespace,
-  type,
+  type:typeRule,
   range,
   enum: enumRule,
   pattern,

@@ -1,5 +1,5 @@
-import { ExecuteValidator } from '../interface';
-import rules from '../rule';
+import { ExecuteValidator } from '../interface.ts';
+import rules from '../rule/index.ts';
 
 const required: ExecuteValidator = (rule, value, callback, source, options) => {
   const errors: string[] = [];

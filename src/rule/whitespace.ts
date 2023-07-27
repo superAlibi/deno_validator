@@ -1,5 +1,5 @@
-import { ExecuteRule } from '../interface';
-import { format } from '../util';
+import { ExecuteRule } from '../interface.ts';
+import { format } from '../util.ts';
 
 /**
  *  Rule for validating whitespace.

@@ -1,7 +1,7 @@
-import { ExecuteRule, Value } from '../interface';
-import { format } from '../util';
-import required from './required';
-import getUrlRegex from './url';
+import { ExecuteRule, Value } from '../interface.ts';
+import { format } from '../util.ts';
+import required from './required.ts';
+import getUrlRegex from './url.ts';
 /* eslint max-len:0 */
 
 const pattern = {
@@ -101,7 +101,7 @@ const type: ExecuteRule = (rule, value, source, errors, options) => {
     // straight typeof check
   } else if (ruleType && typeof value !== rule.type) {
     errors.push(
-      format(options.messages.types[ruleType], rule.fullField, rule.type),
+      format(options.messages?.types?.[ruleType]||'', rule.fullField, rule.type),
     );
   }
 };

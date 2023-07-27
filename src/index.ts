@@ -3,17 +3,16 @@ import {
   complementError,
   asyncMap,
   warning,
-  deepMerge,
+  mergeMessage,
   convertFieldsError,
-} from './util';
-import validators from './validator/index';
-import { messages as defaultMessages, newMessages } from './messages';
+} from './util.ts';
+import validators from './validator/index.ts';
+import { messages as defaultMessages, newMessages } from './messages.ts';
 import {
   InternalRuleItem,
   InternalValidateMessages,
   Rule,
   RuleItem,
-  Rules,
   ValidateCallback,
   ValidateMessages,
   ValidateOption,
@@ -23,9 +22,9 @@ import {
   ValidateFieldsError,
   SyncErrorType,
   ValidateResult,
-} from './interface';
-
-export * from './interface';
+  ExecuteValidator,
+} from './interface.ts';
+export * from './interface.ts';
 
 /**
  *  Encapsulates a validation schema.
@@ -35,14 +34,14 @@ export * from './interface';
  */
 class Schema {
   // ========================= Static =========================
-  static register = function register(type: string, validator) {
+  static register(type: string, validator: ExecuteValidator) {
     if (typeof validator !== 'function') {
       throw new Error(
         'Cannot register a validator by type, validator is not a function',
       );
     }
     validators[type] = validator;
-  };
+  }
 
   static warning = warning;
 
@@ -51,106 +50,48 @@ class Schema {
   static validators = validators;
 
   // ======================== Instance ========================
-  rules: Record<string, RuleItem[]> = null;
+  rules: Record<string, RuleItem[]> = {};
   _messages: InternalValidateMessages = defaultMessages;
 
-  constructor(descriptor: Rules) {
+  constructor(descriptor: Record<string, Rule>) {
     this.define(descriptor);
   }
 
-  define(rules: Rules) {
+  define(rules: Record<string, Rule>) {
     if (!rules) {
       throw new Error('Cannot configure a schema with no rules');
     }
     if (typeof rules !== 'object' || Array.isArray(rules)) {
       throw new Error('Rules must be an object');
     }
-    this.rules = {};
-
-    Object.keys(rules).forEach(name => {
-      const item: Rule = rules[name];
-      this.rules[name] = Array.isArray(item) ? item : [item];
-    });
+    Object.entries(rules).forEach(([k, v]) => {
+      this.rules[k] = Array.isArray(v) ? v : [v]
+    })
   }
 
+  /**
+   * 生成错误消息模板
+   * 在验证出现错误时会取用模板消息
+   * @param messages 可选的重写模板消息
+   * @returns 
+   */
   messages(messages?: ValidateMessages) {
     if (messages) {
-      this._messages = deepMerge(newMessages(), messages);
+      this._messages = mergeMessage(newMessages(), messages);
     }
     return this._messages;
   }
-
-  validate(
-    source: Values,
-    option?: ValidateOption,
-    callback?: ValidateCallback,
-  ): Promise<Values>;
-  validate(source: Values, callback: ValidateCallback): Promise<Values>;
-  validate(source: Values): Promise<Values>;
-
-  validate(source_: Values, o: any = {}, oc: any = () => {}): Promise<Values> {
-    let source: Values = source_;
-    let options: ValidateOption = o;
-    let callback: ValidateCallback = oc;
-    if (typeof options === 'function') {
-      callback = options;
-      options = {};
-    }
-    if (!this.rules || Object.keys(this.rules).length === 0) {
-      if (callback) {
-        callback(null, source);
-      }
-      return Promise.resolve(source);
-    }
-
-    function complete(results: (ValidateError | ValidateError[])[]) {
-      let errors: ValidateError[] = [];
-      let fields: ValidateFieldsError = {};
-
-      function add(e: ValidateError | ValidateError[]) {
-        if (Array.isArray(e)) {
-          errors = errors.concat(...e);
-        } else {
-          errors.push(e);
-        }
-      }
-
-      for (let i = 0; i < results.length; i++) {
-        add(results[i]);
-      }
-      if (!errors.length) {
-        callback(null, source);
-      } else {
-        fields = convertFieldsError(errors);
-        (callback as (
-          errors: ValidateError[],
-          fields: ValidateFieldsError,
-        ) => void)(errors, fields);
-      }
-    }
-
-    if (options.messages) {
-      let messages = this.messages();
-      if (messages === defaultMessages) {
-        messages = newMessages();
-      }
-      deepMerge(messages, options.messages);
-      options.messages = messages;
-    } else {
-      options.messages = this.messages();
-    }
-
-    const series: Record<string, RuleValuePackage[]> = {};
+  getRuleValuePackageMap(options: ValidateOption, source: Values): Record<string, RuleValuePackage[]> {
+    const series: Record<string, RuleValuePackage[]> = {}
+    // get need validator keys
     const keys = options.keys || Object.keys(this.rules);
-    keys.forEach(z => {
-      const arr = this.rules[z];
+    keys.forEach((z: string) => {
+      const proRules: RuleItem[] = this.rules[z];
       let value = source[z];
-      arr.forEach(r => {
+      proRules.forEach(r => {
         let rule: InternalRuleItem = r;
+        // 属性校验的对象本身还可以是函数,但是类型并未给出,后面应该补充
         if (typeof rule.transform === 'function') {
-          if (source === source_) {
-            source = { ...source };
-          }
           value = source[z] = rule.transform(value);
         }
         if (typeof rule === 'function') {
@@ -158,6 +99,7 @@ class Schema {
             validator: rule,
           };
         } else {
+          // 克隆,因为后面会修改rule,避免产生用户端副作用
           rule = { ...rule };
         }
 
@@ -179,11 +121,63 @@ class Schema {
         });
       });
     });
-    const errorFields = {};
+    return series
+  }
+  validate(
+    source: Values,
+    option?: ValidateOption,
+    callback?: ValidateCallback,
+  ): Promise<Values>;
+  validate(source: Values, callback: ValidateCallback): Promise<Values>;
+  validate(source: Values): Promise<Values>;
+
+  validate(source_: Values, o: ValidateOption | ValidateCallback = {}, oc: ValidateCallback = () => { }): Promise<Values> {
+    const source: Values = source_,
+      oisf = typeof o === 'function',
+      options: ValidateOption = oisf ? {} : o,
+      callback: ValidateCallback = oisf ? o : oc
+
+    /**
+     * 没有规则,则表示全部通过 
+     */
+    if (!Object.keys(this.rules).length) {
+      if (callback) {
+        callback(null, source);
+      }
+      return Promise.resolve(source);
+    }
+
+    // 合并传入的message模板
+    options.messages = options.messages ? mergeMessage(this.messages(), options.messages) : this.messages();
+    // 给出包装过的规则校验
+    const series: Record<string, RuleValuePackage[]> = this.getRuleValuePackageMap(options, source);
+
+    const errorFields: Record<string, number> = {};
+    function onValidatorFinished(results: (ValidateError | ValidateError[])[]) {
+      const errors: ValidateError[] = results.reduce<ValidateError[]>((pre, curr) => {
+        if (Array.isArray(curr)) {
+          return pre.concat(curr);
+        }
+        pre.push(curr);
+        return pre
+      }, []);
+      let fields: ValidateFieldsError = {};
+
+      if (!errors.length) {
+        callback(null, source);
+      } else {
+        fields = convertFieldsError(errors);
+        (callback as (
+          errors: ValidateError[],
+          fields: ValidateFieldsError,
+        ) => void)(errors, fields);
+      }
+    }
     return asyncMap(
       series,
       options,
-      (data, doIt) => {
+      (ruleValuePack, failureHandler) => {
+        const data = ruleValuePack
         const rule = data.rule;
         let deep =
           (rule.type === 'object' || rule.type === 'array') &&
@@ -205,7 +199,7 @@ class Schema {
           if (!options.suppressWarning && errorList.length) {
             Schema.warning('async-validator:', errorList);
           }
-          if (errorList.length && rule.message !== undefined) {
+          if (errorList.length && rule.message) {
             errorList = [].concat(rule.message);
           }
 
@@ -213,11 +207,11 @@ class Schema {
           let filledErrors = errorList.map(complementError(rule, source));
 
           if (options.first && filledErrors.length) {
-            errorFields[rule.field] = 1;
-            return doIt(filledErrors);
+            errorFields[rule.field!] = 1;
+            return failureHandler(filledErrors);
           }
           if (!deep) {
-            doIt(filledErrors);
+            failureHandler(filledErrors);
           } else {
             // if rule is required but the target object
             // does not exist fail at the rule level and don't
@@ -231,11 +225,11 @@ class Schema {
                 filledErrors = [
                   options.error(
                     rule,
-                    format(options.messages.required, rule.field),
+                    format(options.messages?.required || '', rule.field),
                   ),
                 ];
               }
-              return doIt(filledErrors);
+              return failureHandler(filledErrors);
             }
 
             let fieldsSchema: Record<string, Rule> = {};
@@ -274,7 +268,7 @@ class Schema {
               if (errs && errs.length) {
                 finalErrors.push(...errs);
               }
-              doIt(finalErrors.length ? finalErrors : null);
+              failureHandler(finalErrors?.length ? finalErrors : null);
             });
           }
         }
@@ -303,7 +297,7 @@ class Schema {
                 ? rule.message(rule.fullField || rule.field)
                 : rule.message || `${rule.fullField || rule.field} fails`,
             );
-          } else if (res instanceof Array) {
+          } else if (Array.isArray(Array)) {
             cb(res);
           } else if (res instanceof Error) {
             cb(res.message);
@@ -316,13 +310,16 @@ class Schema {
           );
         }
       },
-      results => {
-        complete(results);
-      },
+      onValidatorFinished,
       source,
     );
   }
 
+  /**
+   * 给出校验类型
+   * @param rule 
+   * @returns 
+   */
   getType(rule: InternalRuleItem) {
     if (rule.type === undefined && rule.pattern instanceof RegExp) {
       rule.type = 'pattern';
@@ -330,7 +327,7 @@ class Schema {
     if (
       typeof rule.validator !== 'function' &&
       rule.type &&
-      !validators.hasOwnProperty(rule.type)
+      !Object.prototype.hasOwnProperty.call(validators, rule.type)
     ) {
       throw new Error(format('Unknown rule type %s', rule.type));
     }
@@ -344,12 +341,13 @@ class Schema {
     const keys = Object.keys(rule);
     const messageIndex = keys.indexOf('message');
     if (messageIndex !== -1) {
+      // why did delete message
       keys.splice(messageIndex, 1);
     }
     if (keys.length === 1 && keys[0] === 'required') {
       return validators.required;
     }
-    return validators[this.getType(rule)] || undefined;
+    return validators[this.getType(rule)];
   }
 }
 

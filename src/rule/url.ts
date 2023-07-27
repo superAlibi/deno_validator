@@ -7,7 +7,7 @@ export default () => {
   }
 
   const word = '[a-fA-F\\d:]';
-  const b = options =>
+  const b = (options?: { exact: any;includeBoundaries?:any }) =>
     options && options.includeBoundaries
       ? `(?:(?<=\\s|^)(?=${word})|(?<=${word})(?=\\s|$))`
       : '';
@@ -37,7 +37,7 @@ export default () => {
   const v4exact = new RegExp(`^${v4}$`);
   const v6exact = new RegExp(`^${v6}$`);
 
-  const ip = options =>
+  const ip = (options: { exact: any; }) =>
     options && options.exact
       ? v46Exact
       : new RegExp(
@@ -47,11 +47,11 @@ export default () => {
           'g',
         );
 
-  ip.v4 = (options?) =>
+  ip.v4 = (options?: { exact: any; }) =>
     options && options.exact
       ? v4exact
       : new RegExp(`${b(options)}${v4}${b(options)}`, 'g');
-  ip.v6 = (options?) =>
+  ip.v6 = (options?: { exact: any; }) =>
     options && options.exact
       ? v6exact
       : new RegExp(`${b(options)}${v6}${b(options)}`, 'g');

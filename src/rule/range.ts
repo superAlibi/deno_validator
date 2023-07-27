@@ -1,5 +1,5 @@
-import { ExecuteRule } from '../interface';
-import { format } from '../util';
+import { ExecuteRule } from '../interface.ts';
+import { format } from '../util.ts';
 
 const range: ExecuteRule = (rule, value, source, errors, options) => {
   const len = typeof rule.len === 'number';
@@ -9,14 +9,15 @@ const range: ExecuteRule = (rule, value, source, errors, options) => {
   const spRegexp = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
   let val = value;
   let key = null;
-  const num = typeof value === 'number';
-  const str = typeof value === 'string';
-  const arr = Array.isArray(value);
-  if (num) {
+  const visNum = typeof value === 'number',
+    visStr = typeof value === 'string',
+    visArr = Array.isArray(value);
+
+  if (visNum) {
     key = 'number';
-  } else if (str) {
+  } else if (visStr) {
     key = 'string';
-  } else if (arr) {
+  } else if (visArr) {
     key = 'array';
   }
   // if the value is not of a supported type for range validation
@@ -25,18 +26,18 @@ const range: ExecuteRule = (rule, value, source, errors, options) => {
   if (!key) {
     return false;
   }
-  if (arr) {
+  if (visArr) {
     val = value.length;
   }
-  if (str) {
+  if (visStr) {
     // 处理码点大于U+010000的文字length属性不准确的bug，如"𠮷𠮷𠮷".length !== 3
     val = value.replace(spRegexp, '_').length;
   }
   if (len) {
     if (val !== rule.len) {
-      errors.push(format(options.messages[key].len, rule.fullField, rule.len));
+      errors.push(format(options.messages?.[key]?.len, rule.fullField, rule.len));
     }
-  } else if (min && !max && val < rule.min) {
+  } else if (min && !max && val < rule?.min) {
     errors.push(format(options.messages[key].min, rule.fullField, rule.min));
   } else if (max && !min && val > rule.max) {
     errors.push(format(options.messages[key].max, rule.fullField, rule.max));

@@ -1,58 +1,65 @@
 /* eslint no-console:0 */
 
+// import { format } from 'https://deno.land/std@0.195.0/assert/_format.ts';
 import {
   ValidateError,
   ValidateOption,
   RuleValuePackage,
   InternalRuleItem,
   SyncErrorType,
-  RuleType,
   Value,
   Values,
-} from './interface';
+} from './interface.ts';
+import { sprintf } from 'fmt'
+// const formatRegExp = /%[sdj%]/g;
 
-const formatRegExp = /%[sdj%]/g;
-
-declare var ASYNC_VALIDATOR_NO_WARNING;
-
-export let warning: (type: string, errors: SyncErrorType[]) => void = () => {};
-
-// don't print warning message when in production env or node runtime
-if (
-  typeof process !== 'undefined' &&
-  process.env &&
-  process.env.NODE_ENV !== 'production' &&
-  typeof window !== 'undefined' &&
-  typeof document !== 'undefined'
-) {
-  warning = (type, errors) => {
-    if (
-      typeof console !== 'undefined' &&
-      console.warn &&
-      typeof ASYNC_VALIDATOR_NO_WARNING === 'undefined'
-    ) {
+const ASYNC_VALIDATOR_NO_WARNING = Deno.env.get('ASYNC_VALIDATOR_NO_WARNING'),
+  productionMode = Deno.env.get('production') === 'true'
+type WarningFunc = (type: string, errors: SyncErrorType[]) => void
+function getWaring(): WarningFunc {
+  if (productionMode) return () => { }
+  // don't print warning message when in production env or node runtime
+  return (type, errors) => {
+    if (console?.warn && ASYNC_VALIDATOR_NO_WARNING) {
       if (errors.every(e => typeof e === 'string')) {
         console.warn(type, errors);
       }
     }
-  };
+  }
 }
+export const warning = getWaring();
+
 
 export function convertFieldsError(
   errors: ValidateError[],
-): Record<string, ValidateError[]> {
-  if (!errors || !errors.length) return null;
-  const fields = {};
+) {
+  const fields: Record<string, ValidateError[]> = {};
+  if (!errors || !errors.length) return fields;
   errors.forEach(error => {
-    const field = error.field;
+    const field = error.field!;
     fields[field] = fields[field] || [];
     fields[field].push(error);
   });
   return fields;
 }
 
-export function format(
+/**
+ * 用于格式化,类似于c 语言 fmt
+ * @param template 
+ * @param args 
+ * @returns 
+ */
+/* export function format(
   template: ((...args: any[]) => string) | string,
+  ...args: any[]
+) {
+  const tpIsFunc = (typeof template === 'function'),
+    tt = tpIsFunc ? template(args) : template
+  return sprintf(tt, ...args)
+} */
+const formatRegExp = /%[sdj%]/g;
+export function format(
+  template: ((...args: any[]) => string) | string = '',
   ...args: any[]
 ): string {
   let i = 0;
@@ -60,36 +67,35 @@ export function format(
   if (typeof template === 'function') {
     return template.apply(null, args);
   }
-  if (typeof template === 'string') {
-    let str = template.replace(formatRegExp, x => {
-      if (x === '%%') {
-        return '%';
-      }
-      if (i >= len) {
+  if (!(typeof template === 'string')) { return template }
+  const str = template.replace(formatRegExp, x => {
+    if (x === '%%') {
+      return '%';
+    }
+    if (i >= len) {
+      return x;
+    }
+    switch (x) {
+      case '%s':
+        return String(args[i++]);
+      case '%d':
+        return (Number(args[i++])).toString();
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+      default:
         return x;
-      }
-      switch (x) {
-        case '%s':
-          return String(args[i++]);
-        case '%d':
-          return (Number(args[i++]) as unknown) as string;
-        case '%j':
-          try {
-            return JSON.stringify(args[i++]);
-          } catch (_) {
-            return '[Circular]';
-          }
-          break;
-        default:
-          return x;
-      }
-    });
-    return str;
-  }
-  return template;
+    }
+  });
+  return str;
+
 }
 
-function isNativeStringType(type: string) {
+
+function isNativeStringType(type?: string) {
   return (
     type === 'string' ||
     type === 'url' ||
@@ -120,7 +126,7 @@ export function isEmptyObject(obj: object) {
 function asyncParallelArray(
   arr: RuleValuePackage[],
   func: ValidateFunc,
-  callback: (errors: ValidateError[]) => void,
+  onFinished: (errors: ValidateError[]) => void,
 ) {
   const results: ValidateError[] = [];
   let total = 0;
@@ -130,7 +136,7 @@ function asyncParallelArray(
     results.push(...(errors || []));
     total++;
     if (total === arrLength) {
-      callback(results);
+      onFinished(results);
     }
   }
 
@@ -141,48 +147,43 @@ function asyncParallelArray(
 
 function asyncSerialArray(
   arr: RuleValuePackage[],
-  func: ValidateFunc,
-  callback: (errors: ValidateError[]) => void,
+  validator: ValidateFunc,
+  failureHandler: (errors: ValidateError[]) => void,
 ) {
   let index = 0;
   const arrLength = arr.length;
-
   function next(errors: ValidateError[]) {
     if (errors && errors.length) {
-      callback(errors);
+      failureHandler(errors);
       return;
     }
     const original = index;
     index = index + 1;
     if (original < arrLength) {
-      func(arr[original], next);
+      validator(arr[original], next);
     } else {
-      callback([]);
+      failureHandler([]);
     }
   }
 
   next([]);
 }
 
-function flattenObjArr(objArr: Record<string, RuleValuePackage[]>) {
-  const ret: RuleValuePackage[] = [];
-  Object.keys(objArr).forEach(k => {
-    ret.push(...(objArr[k] || []));
-  });
-  return ret;
+/**
+ * 将传入的属性:校验列表映射,打平并依次返回校验列表
+ * @param ruleValuePackMap 
+ * @returns 
+ */
+function flattenObjArr(ruleValuePackMap: Record<string, RuleValuePackage[]>): RuleValuePackage[] {
+  return Object.entries(ruleValuePackMap).reduce((pre, [, arr]) => pre.concat(arr), [] as RuleValuePackage[]);
 }
 
 export class AsyncValidationError extends Error {
-  errors: ValidateError[];
-  fields: Record<string, ValidateError[]>;
-
   constructor(
-    errors: ValidateError[],
-    fields: Record<string, ValidateError[]>,
+    public errors: ValidateError[],
+    public fields: Record<string, ValidateError[]> | null,
   ) {
     super('Async Validation Error');
-    this.errors = errors;
-    this.fields = fields;
   }
 }
 
@@ -191,55 +192,53 @@ type ValidateFunc = (
   doIt: (errors: ValidateError[]) => void,
 ) => void;
 
-export function asyncMap(
-  objArr: Record<string, RuleValuePackage[]>,
+export async function asyncMap(
+  ruleValuePackMap: Record<string, RuleValuePackage[]>,
   option: ValidateOption,
   func: ValidateFunc,
-  callback: (errors: ValidateError[]) => void,
+  onFinished: (errors: ValidateError[]) => void,
   source: Values,
 ): Promise<Values> {
-  if (option.first) {
-    const pending = new Promise<Values>((resolve, reject) => {
+  if (option.shortCircuit) {
+    return new Promise<Values>((resolve, reject) => {
       const next = (errors: ValidateError[]) => {
-        callback(errors);
+        onFinished(errors);
         return errors.length
           ? reject(new AsyncValidationError(errors, convertFieldsError(errors)))
           : resolve(source);
       };
-      const flattenArr = flattenObjArr(objArr);
+      const flattenArr = flattenObjArr(ruleValuePackMap);
       asyncSerialArray(flattenArr, func, next);
     });
-    pending.catch(e => e);
-    return pending;
   }
   const firstFields =
     option.firstFields === true
-      ? Object.keys(objArr)
+      ? Object.keys(ruleValuePackMap)
       : option.firstFields || [];
 
-  const objArrKeys = Object.keys(objArr);
+  const objArrKeys = Object.keys(ruleValuePackMap);
   const objArrLength = objArrKeys.length;
   let total = 0;
   const results: ValidateError[] = [];
-  const pending = new Promise<Values>((resolve, reject) => {
+  return new Promise<Values>((resolve, reject) => {
     const next = (errors: ValidateError[]) => {
       results.push.apply(results, errors);
       total++;
       if (total === objArrLength) {
-        callback(results);
+        onFinished(results);
         return results.length
           ? reject(
-              new AsyncValidationError(results, convertFieldsError(results)),
-            )
+            new AsyncValidationError(results, convertFieldsError(results)),
+          )
           : resolve(source);
       }
     };
     if (!objArrKeys.length) {
-      callback(results);
+      onFinished(results);
       resolve(source);
     }
     objArrKeys.forEach(key => {
-      const arr = objArr[key];
+      const arr = ruleValuePackMap[key];
       if (firstFields.indexOf(key) !== -1) {
         asyncSerialArray(arr, func, next);
       } else {
@@ -247,8 +246,7 @@ export function asyncMap(
       }
     });
   });
-  pending.catch(e => e);
-  return pending;
+
 }
 
 function isErrorObj(
@@ -289,21 +287,27 @@ export function complementError(rule: InternalRuleItem, source: Values) {
   };
 }
 
-export function deepMerge<T extends object>(target: T, source: Partial<T>): T {
-  if (source) {
-    for (const s in source) {
-      if (source.hasOwnProperty(s)) {
-        const value = source[s];
-        if (typeof value === 'object' && typeof target[s] === 'object') {
-          target[s] = {
-            ...target[s],
-            ...value,
-          };
-        } else {
-          target[s] = value;
-        }
-      }
+/**
+ * 合并两级对象
+ *  键深度两级以上无法深度clone
+ * 参考类型:ValidateMessages,它只有两级属性
+ * @param target 
+ * @param source 
+ * @returns 
+ */
+export function mergeMessage<T extends object>(target: T, source?: Partial<T>): T {
+  if (!source) {
+    return target;
+  }
+  for (const key in source) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      const sv = source[key],
+        tv = target[key],
+        OV = typeof sv === 'object' && typeof tv === 'object'
+      Object.assign(target, {
+        [key]: OV ? { ...tv, ...sv, } : sv
+      })
     }
   }
-  return target;
+  return target
 }

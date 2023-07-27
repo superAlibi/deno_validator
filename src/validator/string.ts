@@ -1,11 +1,11 @@
-import { ExecuteValidator } from '../interface';
-import rules from '../rule';
-import { isEmptyValue } from '../util';
+import { ExecuteValidator, InternalRuleItem, Values } from '../interface.ts';
+import rules from '../rule/index.ts';
+import { isEmptyValue } from '../util.ts';
 
-const string: ExecuteValidator = (rule, value, callback, source, options) => {
+const string: ExecuteValidator = (rule: InternalRuleItem, value, callback, source: Values, options) => {
   const errors: string[] = [];
   const validate =
-    rule.required || (!rule.required && source.hasOwnProperty(rule.field));
+    rule.required || (!rule.required && Object.prototype.hasOwnProperty.call(source, rule?.field || ''));
   if (validate) {
     if (isEmptyValue(value, 'string') && !rule.required) {
       return callback();

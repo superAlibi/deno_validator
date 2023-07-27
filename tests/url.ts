@@ -1,4 +1,4 @@
-import AsyncValidator from '../src';
+import AsyncValidator from '../src/index.ts';
 
 const validator = new AsyncValidator({
   v: {
@@ -6,19 +6,19 @@ const validator = new AsyncValidator({
   },
 });
 
-for (var i = 1; i <= 1000; i++) {
-  var time = Date.now();
-  var attack_str = '//a.b' + 'c1'.repeat(i) + 'a';
+for (let i = 1; i <= 1000; i++) {
+  const time = Date.now();
+  const attack_str = '//a.b' + 'c1'.repeat(i) + 'a';
   validator.validate({
     v: attack_str,
   });
-  var time_cost = Date.now() - time;
+  const time_cost = Date.now() - time;
   console.log(
     'attack_str.length: ' + attack_str.length + ': ' + time_cost + ' ms',
   );
 }
 
-if (false) {
+/* if (false) {
   console.log('*'.repeat(10));
 
   for (var i = 1; i <= 50000; i++) {
@@ -32,4 +32,4 @@ if (false) {
       'attack_str.length: ' + attack_str.length + ': ' + time_cost + ' ms',
     );
   }
-}
+} */

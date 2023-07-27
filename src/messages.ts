@@ -1,4 +1,4 @@
-import { InternalValidateMessages } from './interface';
+import { InternalValidateMessages } from './interface.ts';
 
 export function newMessages(): InternalValidateMessages {
   return {

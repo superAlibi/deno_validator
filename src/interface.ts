@@ -27,9 +27,13 @@ export interface ValidateOption {
 
   // when the first validation rule generates an error stop processed
   first?: boolean;
+  // when the first validation rule generates an error stop processed
+  shortCircuit?:boolean
 
   // when the first validation rule of the specified field generates an error stop the field processed, 'true' means all fields.
   firstFields?: boolean | string[];
+  // when the first validation rule of the specified field generates an error stop the field processed, 'true' means all fields.
+  shortCircuitRule?:boolean | string[]
 
   messages?: Partial<ValidateMessages>;
 
@@ -75,7 +79,6 @@ export interface RuleItem {
 
 export type Rule = RuleItem | RuleItem[];
 
-export type Rules = Record<string, Rule>;
 
 /**
  *  Rule for validating a value exists in an enumerable list.
@@ -203,6 +206,9 @@ export interface RuleValuePackage {
   field: string;
 }
 
+/**
+ * 内部规则项
+ */
 export interface InternalRuleItem extends Omit<RuleItem, 'validator'> {
   field?: string;
   fullField?: string;

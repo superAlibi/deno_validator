@@ -1,20 +1,21 @@
-import string from './string';
-import method from './method';
-import number from './number';
-import boolean from './boolean';
-import regexp from './regexp';
-import integer from './integer';
-import float from './float';
-import array from './array';
-import object from './object';
-import enumValidator from './enum';
-import pattern from './pattern';
-import date from './date';
-import required from './required';
-import type from './type';
-import any from './any';
+import string from './string.ts';
+import method from './method.ts';
+import number from './number.ts';
+import boolean from './boolean.ts';
+import regexp from './regexp.ts';
+import integer from './integer.ts';
+import float from './float.ts';
+import array from './array.ts';
+import object from './object.ts';
+import enumValidator from './enum.ts';
+import pattern from './pattern.ts';
+import date from './date.ts';
+import required from './required.ts';
+import fromValidator from './type.ts';
+import anyValidator from './any.ts';
+import { ExecuteValidator } from '../interface.ts';
 
-export default {
+const exportInfo: Record<string, ExecuteValidator> = {
   string,
   method,
   number,
@@ -27,9 +28,11 @@ export default {
   enum: enumValidator,
   pattern,
   date,
-  url: type,
-  hex: type,
-  email: type,
+  url: fromValidator,
+  hex: fromValidator,
+  email: fromValidator,
   required,
-  any,
-};
+  any: anyValidator,
+}
+
+export default exportInfo;
