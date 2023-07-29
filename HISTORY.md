@@ -1,10 +1,12 @@
 # History
-----
+
+---
 
 ## 4.0.0 / 2021-08-11
 
 - full ts support
-- support return transformed value when pass validation(promise and callback): https://github.com/yiminghe/async-validator/pull/277
+- support return transformed value when pass validation(promise and callback):
+  https://github.com/yiminghe/async-validator/pull/277
 
 ## 3.5.0 / 2020-11-12
 
@@ -31,7 +33,8 @@
 
 ## 3.0.0 / 2019-08-07
 
-- Enum validates `false` value: https://github.com/yiminghe/async-validator/pull/164
+- Enum validates `false` value:
+  https://github.com/yiminghe/async-validator/pull/164
 
 ## 2.0.0 / 2019-07-26
 
@@ -81,6 +84,6 @@
 
 ## 1.4.0 / 2015-01-12
 
-- fix first option. 
+- fix first option.
 - add firstFields option.
 - see tests/validator.spec.js

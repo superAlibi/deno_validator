@@ -1,53 +1,50 @@
-import Schema from '../src';
-
-describe('unicode', () => {
-  it('works for unicode U+0000 to U+FFFF ', done => {
+import Schema from "../src/index.ts";
+import { assertEquals } from "assert";
+Deno.test("date", (it) => {
+  it.step("works for unicode U+0000 to U+FFFF ", () => {
     new Schema({
       v: {
-        type: 'string',
+        type: "string",
         len: 4,
       },
     }).validate(
       {
-        v: '吉吉吉吉',
+        v: "吉吉吉吉",
       },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });
 
-  it('works for unicode gt U+FFFF ', done => {
+  it.step("works for unicode gt U+FFFF ", () => {
     new Schema({
       v: {
-        type: 'string',
+        type: "string",
         len: 4, // 原来length属性应该为8，更正之后应该为4
       },
     }).validate(
       {
-        v: '𠮷𠮷𠮷𠮷',
+        v: "𠮷𠮷𠮷𠮷",
       },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });
 
-  it('Rich Text Format', done => {
+  it.step("Rich Text Format", () => {
     new Schema({
       v: {
-        type: 'string',
+        type: "string",
         len: 2,
       },
     }).validate(
       {
-        v: '💩💩',
+        v: "💩💩",
       },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });

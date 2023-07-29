@@ -1,112 +1,107 @@
-import Schema from '../src';
+import Schema from "../src/index.ts";
+import { assertEquals } from "assert";
 
-describe('number', () => {
-  it('works', done => {
+Deno.test("date", (it) => {
+  it.step("works", () => {
     new Schema({
       v: {
-        type: 'number',
+        type: "number",
       },
     }).validate(
       {
-        v: '1',
+        v: "1",
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v is not a number');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "v is not a number");
       },
     );
   });
 
-  it('works for no-required', done => {
+  it.step("works for no-required", () => {
     new Schema({
       v: {
-        type: 'number',
+        type: "number",
       },
     }).validate(
       {
         v: undefined,
       },
-      errors => {
+      (errors) => {
         expect(errors).toBeFalsy();
-        done();
       },
     );
   });
 
-  it('works for no-required in case of empty string', done => {
+  it.step("works for no-required in case of empty string", () => {
     new Schema({
       v: {
-        type: 'number',
+        type: "number",
         required: false,
       },
     }).validate(
       {
-        v: '',
+        v: "",
       },
-      errors => {
+      (errors) => {
         expect(errors).toBeFalsy();
-        done();
       },
     );
   });
 
-  it('works for required', done => {
+  it.step("works for required", () => {
     new Schema({
       v: {
-        type: 'number',
+        type: "number",
         required: true,
       },
     }).validate(
       {
         v: undefined,
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v is required');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "v is required");
       },
     );
   });
 
-  it('transform does not change value', done => {
+  it.step("transform does not change value", () => {
     const value = {
-      v: '1',
+      v: "1",
     };
     new Schema({
       v: {
-        type: 'number',
+        type: "number",
         transform: Number,
       },
     }).validate(value, (errors, data) => {
       expect(data).toEqual({
         v: 1,
       });
-      expect(value.v).toBe('1');
+      assertEquals(value.v, "1");
       expect(errors).toBeFalsy();
-      done();
     });
   });
 
-  it('return transformed value in promise.then', done => {
+  it.step("return transformed value in promise.then", () => {
     const value = {
-      v: '1',
+      v: "1",
     };
     new Schema({
       v: {
-        type: 'number',
+        type: "number",
         transform: Number,
       },
     })
-      .validate(value, errors => {
-        expect(value.v).toBe('1');
+      .validate(value, (errors) => {
+        assertEquals(value.v, "1");
         expect(errors).toBeFalsy();
       })
-      .then(source => {
+      .then((source) => {
         expect(source).toEqual({
           v: 1,
         });
-        done();
       });
   });
 });

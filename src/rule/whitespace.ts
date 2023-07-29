@@ -1,5 +1,5 @@
-import { ExecuteRule } from '../interface.ts';
-import { format } from '../util.ts';
+import { ExecuteRule } from "../interface.ts";
+import { format } from "../util.ts";
 
 /**
  *  Rule for validating whitespace.
@@ -13,8 +13,8 @@ import { format } from '../util.ts';
  *  @param options.messages The validation messages.
  */
 const whitespace: ExecuteRule = (rule, value, source, errors, options) => {
-  if (/^\s+$/.test(value) || value === '') {
-    errors.push(format(options.messages.whitespace, rule.fullField));
+  if (/^\s+$/.test(value) || value === "") {
+    errors.push(format(options.messages?.whitespace || "", rule.fieldPathStr));
   }
 };
 

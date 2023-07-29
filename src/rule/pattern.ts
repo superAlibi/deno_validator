@@ -1,5 +1,5 @@
-import { ExecuteRule } from '../interface.ts';
-import { format } from '../util.ts';
+import { ExecuteRule } from "../interface.ts";
+import { format } from "../util.ts";
 
 const pattern: ExecuteRule = (rule, value, source, errors, options) => {
   if (rule.pattern) {
@@ -12,19 +12,19 @@ const pattern: ExecuteRule = (rule, value, source, errors, options) => {
         errors.push(
           format(
             options.messages?.pattern?.mismatch,
-            rule.fullField,
+            rule.fieldPathStr,
             value,
             rule.pattern,
           ),
         );
       }
-    } else if (typeof rule.pattern === 'string') {
+    } else if (typeof rule.pattern === "string") {
       const _pattern = new RegExp(rule.pattern);
       if (!_pattern.test(value)) {
         errors.push(
           format(
             options.messages?.pattern?.mismatch,
-            rule.fullField,
+            rule.fieldPathStr,
             value,
             rule.pattern,
           ),

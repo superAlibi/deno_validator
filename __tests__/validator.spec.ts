@@ -1,24 +1,24 @@
-import Schema from '../src';
-
-describe('validator', () => {
-  it('works', done => {
+import Schema from "../src/index.ts";
+import { assertEquals } from "assert";
+Deno.test("date", (it) => {
+  it.step("works", () => {
     new Schema({
       v: [
         {
           validator(rule, value, callback) {
-            callback(new Error('e1'));
+            callback(new Error("e1"));
           },
         },
         {
           validator(rule, value, callback) {
-            callback(new Error('e2'));
+            callback(new Error("e2"));
           },
         },
       ],
       v2: [
         {
           validator(rule, value, callback) {
-            callback(new Error('e3'));
+            callback(new Error("e3"));
           },
         },
       ],
@@ -30,14 +30,14 @@ describe('validator', () => {
         },
         {
           validator() {
-            return new Error('e5');
+            return new Error("e5");
           },
         },
         {
           validator() {
             return false;
           },
-          message: 'e6',
+          message: "e6",
         },
         {
           validator() {
@@ -49,45 +49,44 @@ describe('validator', () => {
           validator() {
             return false;
           },
-          message: '',
+          message: "",
         },
       ],
     }).validate(
       {
         v: 2,
       },
-      errors => {
-        expect(errors.length).toBe(7);
-        expect(errors[0].message).toBe('e1');
-        expect(errors[1].message).toBe('e2');
-        expect(errors[2].message).toBe('e3');
-        expect(errors[3].message).toBe('v3 fails');
-        expect(errors[4].message).toBe('e5');
-        expect(errors[5].message).toBe('e6');
-        expect(errors[6].message).toBe('');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 7);
+        assertEquals(errors?.[0].message, "e1");
+        assertEquals(errors?.[1].message, "e2");
+        assertEquals(errors?.[2].message, "e3");
+        assertEquals(errors?.[3].message, "v3 fails");
+        assertEquals(errors?.[4].message, "e5");
+        assertEquals(errors?.[5].message, "e6");
+        assertEquals(errors?.[6].message, "");
       },
     );
   });
 
-  it('first works', done => {
+  it.step("first works", () => {
     new Schema({
       v: [
         {
           validator(rule, value, callback) {
-            callback(new Error('e1'));
+            callback(new Error("e1"));
           },
         },
         {
           validator(rule, value, callback) {
-            callback(new Error('e2'));
+            callback(new Error("e2"));
           },
         },
       ],
       v2: [
         {
           validator(rule, value, callback) {
-            callback(new Error('e3'));
+            callback(new Error("e3"));
           },
         },
       ],
@@ -99,26 +98,25 @@ describe('validator', () => {
       {
         first: true,
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('e1');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "e1");
       },
     );
   });
 
-  describe('firstFields', () => {
-    it('works for true', done => {
+  Deno.test("date", (it) => {
+    it.step("works for true", () => {
       new Schema({
         v: [
           {
             validator(rule, value, callback) {
-              callback(new Error('e1'));
+              callback(new Error("e1"));
             },
           },
           {
             validator(rule, value, callback) {
-              callback(new Error('e2'));
+              callback(new Error("e2"));
             },
           },
         ],
@@ -126,19 +124,19 @@ describe('validator', () => {
         v2: [
           {
             validator(rule, value, callback) {
-              callback(new Error('e3'));
+              callback(new Error("e3"));
             },
           },
         ],
         v3: [
           {
             validator(rule, value, callback) {
-              callback(new Error('e4'));
+              callback(new Error("e4"));
             },
           },
           {
             validator(rule, value, callback) {
-              callback(new Error('e5'));
+              callback(new Error("e5"));
             },
           },
         ],
@@ -151,27 +149,26 @@ describe('validator', () => {
         {
           firstFields: true,
         },
-        errors => {
-          expect(errors.length).toBe(3);
-          expect(errors[0].message).toBe('e1');
-          expect(errors[1].message).toBe('e3');
-          expect(errors[2].message).toBe('e4');
-          done();
+        (errors) => {
+          assertEquals(errors?.length, 3);
+          assertEquals(errors?.[0].message, "e1");
+          assertEquals(errors?.[1].message, "e3");
+          assertEquals(errors?.[2].message, "e4");
         },
       );
     });
 
-    it('works for array', done => {
+    it.step("works for array", () => {
       new Schema({
         v: [
           {
             validator(rule, value, callback) {
-              callback(new Error('e1'));
+              callback(new Error("e1"));
             },
           },
           {
             validator(rule, value, callback) {
-              callback(new Error('e2'));
+              callback(new Error("e2"));
             },
           },
         ],
@@ -179,19 +176,19 @@ describe('validator', () => {
         v2: [
           {
             validator(rule, value, callback) {
-              callback(new Error('e3'));
+              callback(new Error("e3"));
             },
           },
         ],
         v3: [
           {
             validator(rule, value, callback) {
-              callback(new Error('e4'));
+              callback(new Error("e4"));
             },
           },
           {
             validator(rule, value, callback) {
-              callback(new Error('e5'));
+              callback(new Error("e5"));
             },
           },
         ],
@@ -202,39 +199,38 @@ describe('validator', () => {
           v3: 1,
         },
         {
-          firstFields: ['v'],
+          firstFields: ["v"],
         },
-        errors => {
-          expect(errors.length).toBe(4);
-          expect(errors[0].message).toBe('e1');
-          expect(errors[1].message).toBe('e3');
-          expect(errors[2].message).toBe('e4');
-          expect(errors[3].message).toBe('e5');
-          done();
+        (errors) => {
+          assertEquals(errors?.length, 4);
+          assertEquals(errors?.[0].message, "e1");
+          assertEquals(errors?.[1].message, "e3");
+          assertEquals(errors?.[2].message, "e4");
+          assertEquals(errors?.[3].message, "e5");
         },
       );
     });
   });
 
-  describe('promise api', () => {
-    it('works', done => {
+  Deno.test("date", (it) => {
+    it.step("works", () => {
       new Schema({
         v: [
           {
             validator(rule, value, callback) {
-              callback(new Error('e1'));
+              callback(new Error("e1"));
             },
           },
           {
             validator(rule, value, callback) {
-              callback(new Error('e2'));
+              callback(new Error("e2"));
             },
           },
         ],
         v2: [
           {
             validator(rule, value, callback) {
-              callback(new Error('e3'));
+              callback(new Error("e3"));
             },
           },
         ],
@@ -246,14 +242,14 @@ describe('validator', () => {
           },
           {
             validator() {
-              return new Error('e5');
+              return new Error("e5");
             },
           },
           {
             validator() {
               return false;
             },
-            message: 'e6',
+            message: "e6",
           },
           {
             validator() {
@@ -266,14 +262,14 @@ describe('validator', () => {
           v: 2,
         })
         .catch(({ errors, fields }) => {
-          expect(errors.length).toBe(6);
-          expect(errors[0].message).toBe('e1');
-          expect(errors[1].message).toBe('e2');
-          expect(errors[2].message).toBe('e3');
-          expect(errors[3].message).toBe('v3 fails');
-          expect(errors[4].message).toBe('e5');
-          expect(errors[5].message).toBe('e6');
-          expect(fields.v[0].fieldValue).toBe(2);
+          assertEquals(errors?.length, 6);
+          assertEquals(errors?.[0].message, "e1");
+          assertEquals(errors?.[1].message, "e2");
+          assertEquals(errors?.[2].message, "e3");
+          assertEquals(errors?.[3].message, "v3 fails");
+          assertEquals(errors?.[4].message, "e5");
+          assertEquals(errors?.[5].message, "e6");
+          assertEquals(fields.v[0].fieldValue, 2);
           expect(fields).toMatchInlineSnapshot(`
             Object {
               "v": Array [
@@ -302,28 +298,27 @@ describe('validator', () => {
               ],
             }
           `);
-          done();
         });
     });
 
-    it('first works', done => {
+    it.step("first works", () => {
       new Schema({
         v: [
           {
             validator(rule, value, callback) {
-              callback(new Error('e1'));
+              callback(new Error("e1"));
             },
           },
           {
             validator(rule, value, callback) {
-              callback(new Error('e2'));
+              callback(new Error("e2"));
             },
           },
         ],
         v2: [
           {
             validator(rule, value, callback) {
-              callback(new Error('e3'));
+              callback(new Error("e3"));
             },
           },
         ],
@@ -338,24 +333,23 @@ describe('validator', () => {
           },
         )
         .catch(({ errors }) => {
-          expect(errors.length).toBe(1);
-          expect(errors[0].message).toBe('e1');
-          done();
+          assertEquals(errors?.length, 1);
+          assertEquals(errors?.[0].message, "e1");
         });
     });
 
-    describe('firstFields', () => {
-      it('works for true', done => {
+    Deno.test("date", (it) => {
+      it.step("works for true", () => {
         new Schema({
           v: [
             {
               validator(rule, value, callback) {
-                callback(new Error('e1'));
+                callback(new Error("e1"));
               },
             },
             {
               validator(rule, value, callback) {
-                callback(new Error('e2'));
+                callback(new Error("e2"));
               },
             },
           ],
@@ -363,19 +357,19 @@ describe('validator', () => {
           v2: [
             {
               validator(rule, value, callback) {
-                callback(new Error('e3'));
+                callback(new Error("e3"));
               },
             },
           ],
           v3: [
             {
               validator(rule, value, callback) {
-                callback(new Error('e4'));
+                callback(new Error("e4"));
               },
             },
             {
               validator(rule, value, callback) {
-                callback(new Error('e5'));
+                callback(new Error("e5"));
               },
             },
           ],
@@ -391,25 +385,24 @@ describe('validator', () => {
             },
           )
           .catch(({ errors }) => {
-            expect(errors.length).toBe(3);
-            expect(errors[0].message).toBe('e1');
-            expect(errors[1].message).toBe('e3');
-            expect(errors[2].message).toBe('e4');
-            done();
+            assertEquals(errors?.length, 3);
+            assertEquals(errors?.[0].message, "e1");
+            assertEquals(errors?.[1].message, "e3");
+            assertEquals(errors?.[2].message, "e4");
           });
       });
 
-      it('works for array', done => {
+      it.step("works for array", () => {
         new Schema({
           v: [
             {
               validator(rule, value, callback) {
-                callback(new Error('e1'));
+                callback(new Error("e1"));
               },
             },
             {
               validator(rule, value, callback) {
-                callback(new Error('e2'));
+                callback(new Error("e2"));
               },
             },
           ],
@@ -417,19 +410,19 @@ describe('validator', () => {
           v2: [
             {
               validator(rule, value, callback) {
-                callback(new Error('e3'));
+                callback(new Error("e3"));
               },
             },
           ],
           v3: [
             {
               validator(rule, value, callback) {
-                callback(new Error('e4'));
+                callback(new Error("e4"));
               },
             },
             {
               validator(rule, value, callback) {
-                callback(new Error('e5'));
+                callback(new Error("e5"));
               },
             },
           ],
@@ -441,20 +434,19 @@ describe('validator', () => {
               v3: 1,
             },
             {
-              firstFields: ['v'],
+              firstFields: ["v"],
             },
           )
           .catch(({ errors }) => {
-            expect(errors.length).toBe(4);
-            expect(errors[0].message).toBe('e1');
-            expect(errors[1].message).toBe('e3');
-            expect(errors[2].message).toBe('e4');
-            expect(errors[3].message).toBe('e5');
-            done();
+            assertEquals(errors?.length, 4);
+            assertEquals(errors?.[0].message, "e1");
+            assertEquals(errors?.[1].message, "e3");
+            assertEquals(errors?.[2].message, "e4");
+            assertEquals(errors?.[3].message, "e5");
           });
       });
 
-      it('works for no rules fields', done => {
+      it.step("works for no rules fields", () => {
         new Schema({
           v: [],
           v2: [],
@@ -463,34 +455,32 @@ describe('validator', () => {
             v: 2,
             v2: 1,
           })
-          .then(source => {
+          .then((source) => {
             expect(source).toMatchObject({ v: 2, v2: 1 });
-            done();
           });
       });
     });
   });
 
-  it('custom validate function throw error', done => {
+  it.step("custom validate function throw error", () => {
     new Schema({
       v: [
         {
           validator(rule, value, callback) {
-            throw new Error('something wrong');
+            throw new Error("something wrong");
           },
         },
       ],
     })
       .validate(
-        { v: '' },
+        { v: "" },
         {
           suppressValidatorError: true,
         },
       )
       .catch(({ errors }) => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('something wrong');
-        done();
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "something wrong");
       });
   });
 });

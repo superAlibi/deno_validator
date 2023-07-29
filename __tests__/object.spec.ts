@@ -1,21 +1,21 @@
-import Schema from '../src';
+import Schema from "../src/index.ts";
+import { assertEquals } from "assert";
 
-describe('object', () => {
-  it('works for the required object with fields in case of empty string', done => {
+Deno.test("date", (it) => {
+  it.step("works for the required object with fields in case of empty string", () => {
     new Schema({
       v: {
-        type: 'object',
+        type: "object",
         required: true,
         fields: {},
       },
     }).validate(
       {
-        v: '',
+        v: "",
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v is not an object');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "v is not an object");
       },
     );
   });

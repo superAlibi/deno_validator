@@ -1,19 +1,20 @@
-import { ExecuteValidator } from '../interface.ts';
-import rules from '../rule/index.ts';
-import { isEmptyValue } from '../util.ts';
+import { ExecuteValidator } from "../interface.ts";
+import rules from "../rule/index.ts";
+import { isEmptyValue } from "../util.ts";
 
 const date: ExecuteValidator = (rule, value, callback, source, options) => {
   // console.log('integer rule called %j', rule);
   const errors: string[] = [];
-  const validate =
-    rule.required || (!rule.required && Object.prototype.hasOwnProperty.call(source, rule?.field || ''));
+  const validate = rule.required ||
+    (!rule.required &&
+      Object.prototype.hasOwnProperty.call(source, rule?.field || ""));
   // console.log('validate on %s value', value);
   if (validate) {
-    if (isEmptyValue(value, 'date') && !rule.required) {
+    if (isEmptyValue(value, "date") && !rule.required) {
       return callback();
     }
     rules.required(rule, value, source, errors, options);
-    if (!isEmptyValue(value, 'date')) {
+    if (!isEmptyValue(value, "date")) {
       let dateObject;
 
       if (value instanceof Date) {
@@ -28,7 +29,7 @@ const date: ExecuteValidator = (rule, value, callback, source, options) => {
       }
     }
   }
-  callback(errors);
+  return callback(errors);
 };
 
 export default date;

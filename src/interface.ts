@@ -1,22 +1,22 @@
 // >>>>> Rule
 // Modified from https://github.com/yiminghe/async-validator/blob/0d51d60086a127b21db76f44dff28ae18c165c47/src/index.d.ts
 export type RuleType =
-  | 'string'
-  | 'number'
-  | 'boolean'
-  | 'method'
-  | 'regexp'
-  | 'integer'
-  | 'float'
-  | 'array'
-  | 'object'
-  | 'enum'
-  | 'date'
-  | 'url'
-  | 'hex'
-  | 'email'
-  | 'pattern'
-  | 'any';
+  | "string"
+  | "number"
+  | "boolean"
+  | "method"
+  | "regexp"
+  | "integer"
+  | "float"
+  | "array"
+  | "object"
+  | "enum"
+  | "date"
+  | "url"
+  | "hex"
+  | "email"
+  | "pattern"
+  | "any";
 
 export interface ValidateOption {
   // whether to suppress internal warning
@@ -28,12 +28,12 @@ export interface ValidateOption {
   // when the first validation rule generates an error stop processed
   first?: boolean;
   // when the first validation rule generates an error stop processed
-  shortCircuit?:boolean
+  shortCircuit?: boolean;
 
   // when the first validation rule of the specified field generates an error stop the field processed, 'true' means all fields.
   firstFields?: boolean | string[];
   // when the first validation rule of the specified field generates an error stop the field processed, 'true' means all fields.
-  shortCircuitRule?:boolean | string[]
+  shortCircuitRule?: boolean | string[];
 
   messages?: Partial<ValidateMessages>;
 
@@ -64,21 +64,20 @@ export interface RuleItem {
   asyncValidator?: (
     rule: InternalRuleItem,
     value: Value,
-    callback: (error?: string | Error) => void,
+    callback: (error?: SyncErrorType) => void,
     source: Values,
     options: ValidateOption,
   ) => void | Promise<void>;
   validator?: (
     rule: InternalRuleItem,
     value: Value,
-    callback: (error?: string | Error) => void,
+    callback: (error?: SyncErrorType) => void,
     source: Values,
     options: ValidateOption,
-  ) => SyncValidateResult | void;
+  ) => SyncValidateResult | void | Promise<SyncValidateResult | void>;
 }
 
 export type Rule = RuleItem | RuleItem[];
-
 
 /**
  *  Rule for validating a value exists in an enumerable list.
@@ -120,7 +119,7 @@ export type ExecuteValidator = (
 ) => void;
 
 // >>>>> Message
-type ValidateMessage<T extends any[] = unknown[]> =
+type ValidateMessage<T extends Array<unknown> = unknown[]> =
   | string
   | ((...args: T) => string);
 type FullField = string | undefined;
@@ -194,10 +193,10 @@ export interface ValidateError {
 
 export type ValidateFieldsError = Record<string, ValidateError[]>;
 
-export type ValidateCallback = (
+export type ValidateCallback<T = unknown> = (
   errors: ValidateError[] | null,
   fields: ValidateFieldsError | Values,
-) => void;
+) => T | Promise<T>;
 
 export interface RuleValuePackage {
   rule: InternalRuleItem;
@@ -206,12 +205,10 @@ export interface RuleValuePackage {
   field: string;
 }
 
-/**
- * 内部规则项
- */
-export interface InternalRuleItem extends Omit<RuleItem, 'validator'> {
+/** */
+export interface InternalRuleItem extends Omit<RuleItem, "validator"> {
   field?: string;
-  fullField?: string;
-  fullFields?: string[];
-  validator?: RuleItem['validator'] | ExecuteValidator;
+  fieldPathStr?: string;
+  fieldPathArr?: string[];
+  validator?: RuleItem["validator"] | ExecuteValidator;
 }

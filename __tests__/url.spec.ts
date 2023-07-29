@@ -1,165 +1,155 @@
-import Schema from '../src';
-
-describe('url', () => {
-  it('works for empty string', done => {
+import Schema from "../src/index.ts";
+import { assertEquals } from "assert";
+Deno.test("date", (it) => {
+  it.step("works for empty string", () => {
     new Schema({
       v: {
-        type: 'url',
+        type: "url",
       },
     }).validate(
       {
-        v: '',
+        v: "",
       },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });
 
-  it('works for ip url', done => {
+  it.step("works for ip url", () => {
     new Schema({
       v: {
-        type: 'url',
+        type: "url",
       },
     }).validate(
       {
-        v: 'http://10.218.136.29/talent-tree/src/index.html',
+        v: "http://10.218.136.29/talent-tree/src/index.html",
       },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });
 
-  it('works for required empty string', done => {
+  it.step("works for required empty string", () => {
     new Schema({
       v: {
-        type: 'url',
+        type: "url",
         required: true,
       },
     }).validate(
       {
-        v: '',
+        v: "",
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v is required');
-        done();
-      },
-    );
-  });
-
-  it('works for type url', done => {
-    new Schema({
-      v: {
-        type: 'url',
-      },
-    }).validate(
-      {
-        v: 'http://www.taobao.com',
-      },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "v is required");
       },
     );
   });
 
-  it('works for type url has query', done => {
+  it.step("works for type url", () => {
     new Schema({
       v: {
-        type: 'url',
+        type: "url",
       },
     }).validate(
       {
-        v: 'http://www.taobao.com/abc?a=a',
+        v: "http://www.taobao.com",
       },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });
 
-  it('works for type url has hash', done => {
+  it.step("works for type url has query", () => {
     new Schema({
       v: {
-        type: 'url',
+        type: "url",
       },
     }).validate(
       {
-        v: 'http://www.taobao.com/abc#!abc',
+        v: "http://www.taobao.com/abc?a=a",
       },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });
 
-  it('works for type url has query and has', done => {
+  it.step("works for type url has hash", () => {
     new Schema({
       v: {
-        type: 'url',
+        type: "url",
       },
     }).validate(
       {
-        v: 'http://www.taobao.com/abc?abc=%23&b=a~c#abc',
+        v: "http://www.taobao.com/abc#!abc",
       },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });
 
-  it('works for type url has multi hyphen', done => {
+  it.step("works for type url has query and has", () => {
     new Schema({
       v: {
-        type: 'url',
+        type: "url",
       },
     }).validate(
       {
-        v: 'https://www.tao---bao.com',
+        v: "http://www.taobao.com/abc?abc=%23&b=a~c#abc",
       },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });
 
-  it('works for type not a valid url', done => {
+  it.step("works for type url has multi hyphen", () => {
     new Schema({
       v: {
-        type: 'url',
+        type: "url",
       },
     }).validate(
       {
-        v: 'http://www.taobao.com/abc?abc=%23&b=  a~c#abc    ',
+        v: "https://www.tao---bao.com",
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v is not a valid url');
-        done();
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });
 
-  it('support skip schema', done => {
+  it.step("works for type not a valid url", () => {
     new Schema({
       v: {
-        type: 'url',
+        type: "url",
       },
     }).validate(
       {
-        v: '//g.cn',
+        v: "http://www.taobao.com/abc?abc=%23&b=  a~c#abc    ",
       },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "v is not a valid url");
+      },
+    );
+  });
+
+  it.step("support skip schema", () => {
+    new Schema({
+      v: {
+        type: "url",
+      },
+    }).validate(
+      {
+        v: "//g.cn",
+      },
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });

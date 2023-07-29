@@ -1,73 +1,69 @@
-import Schema from '../src';
-
-describe('date', () => {
-  it('required works for undefined', done => {
-    new Schema({
+import Schema from "../src/index.ts";
+import { assertEquals } from "assert";
+Deno.test("date", async (it) => {
+  await it.step("required works for undefined", async () => {
+    await new Schema({
       v: {
-        type: 'date',
+        type: "date",
         required: true,
       },
     }).validate(
       {
         v: undefined,
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v is required');
-        done();
+      (errors) => {
+        assertEquals(errors?.length || '', 1);
+        assertEquals(errors?.[0].message || '', "v is required");
       },
     );
   });
 
-  it('required works for ""', done => {
-    new Schema({
+  await it.step('required works for ""', async () => {
+    await new Schema({
       v: {
-        type: 'date',
+        type: "date",
         required: true,
       },
     }).validate(
       {
-        v: '',
+        v: "",
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v is required');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "v is required");
       },
     );
   });
 
-  it('required works for non-date type', done => {
-    new Schema({
+  await it.step("required works for non-date type", async () => {
+    await new Schema({
       v: {
-        type: 'date',
+        type: "date",
         required: true,
       },
     }).validate(
       {
         v: {},
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v is not a date');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "v is not a date");
       },
     );
   });
 
-  it('required works for "timestamp"', done => {
-    new Schema({
+  await it.step('required works for "timestamp"', async () => {
+    await new Schema({
       v: {
-        type: 'date',
+        type: "date",
         required: true,
       },
     }).validate(
       {
         v: 1530374400000,
       },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });

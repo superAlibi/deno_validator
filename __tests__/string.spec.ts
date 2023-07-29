@@ -1,128 +1,121 @@
-import Schema from '../src';
-
-describe('string', () => {
-  it('works for none require', done => {
+import Schema from "../src/index.ts";
+import { assertEquals } from "assert";
+Deno.test("date", (it) => {
+  it.step("works for none require", () => {
     let data = {
-      v: '',
+      v: "",
     };
     new Schema({
       v: {
-        type: 'string',
+        type: "string",
       },
     }).validate(data, (errors, d) => {
-      expect(errors).toBe(null);
+      assertEquals(errors, null);
       expect(d).toEqual(data);
-      done();
     });
   });
 
-  it('works for empty string', done => {
+  it.step("works for empty string", () => {
     new Schema({
       v: {
         required: true,
-        type: 'string',
+        type: "string",
       },
     }).validate(
       {
-        v: '',
+        v: "",
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v is required');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "v is required");
       },
     );
   });
 
-  it('works for undefined string', done => {
+  it.step("works for undefined string", () => {
     new Schema({
       v: {
         required: true,
-        type: 'string',
+        type: "string",
       },
     }).validate(
       {
         v: undefined,
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v is required');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "v is required");
       },
     );
   });
 
-  it('works for null string', done => {
+  it.step("works for null string", () => {
     new Schema({
       v: {
         required: true,
-        type: 'string',
+        type: "string",
       },
     }).validate(
       {
         v: null,
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v is required');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "v is required");
       },
     );
   });
 
-  it('works for message', done => {
+  it.step("works for message", () => {
     new Schema({
       v: {
         required: true,
-        type: 'string',
-        message: 'haha',
+        type: "string",
+        message: "haha",
       },
     }).validate(
       {
         v: null,
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('haha');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "haha");
       },
     );
   });
 
-  it('works for none empty', done => {
+  it.step("works for none empty", () => {
     new Schema({
       v: {
         required: true,
-        type: 'string',
-        message: 'haha',
+        type: "string",
+        message: "haha",
       },
     }).validate(
       {
-        v: ' ',
+        v: " ",
       },
-      errors => {
-        expect(errors).toBe(null);
-        done();
+      (errors) => {
+        assertEquals(errors, null);
       },
     );
   });
 
-  it('works for whitespace empty', done => {
+  it.step("works for whitespace empty", () => {
     new Schema({
       v: {
         required: true,
-        type: 'string',
+        type: "string",
         whitespace: true,
-        message: 'haha',
+        message: "haha",
       },
     }).validate(
       {
-        v: ' ',
+        v: " ",
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('haha');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "haha");
       },
     );
   });

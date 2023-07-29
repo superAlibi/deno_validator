@@ -1,20 +1,20 @@
-import Schema from '../src';
+import Schema from "../src/index.ts";
+import { assertEquals } from "assert";
 
-describe('enum', () => {
-  it('run validation on `false`', done => {
+Deno.test("date", (it) => {
+  it.step("run validation on `false`", () => {
     new Schema({
       v: {
-        type: 'enum',
+        type: "enum",
         enum: [true],
       },
     }).validate(
       {
         v: false,
       },
-      errors => {
-        expect(errors.length).toBe(1);
-        expect(errors[0].message).toBe('v must be one of true');
-        done();
+      (errors) => {
+        assertEquals(errors?.length, 1);
+        assertEquals(errors?.[0].message, "v must be one of true");
       },
     );
   });

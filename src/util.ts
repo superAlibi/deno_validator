@@ -1,42 +1,47 @@
-/* eslint no-console:0 */
 
 // import { format } from 'https://deno.land/std@0.195.0/assert/_format.ts';
 import {
+  InternalRuleItem,
+  RuleValuePackage,
+  SyncErrorType,
   ValidateError,
   ValidateOption,
-  RuleValuePackage,
-  InternalRuleItem,
-  SyncErrorType,
   Value,
   Values,
-} from './interface.ts';
-import { sprintf } from 'fmt'
+} from "./interface.ts";
+import { sprintf } from "fmt";
 // const formatRegExp = /%[sdj%]/g;
 
-const ASYNC_VALIDATOR_NO_WARNING = Deno.env.get('ASYNC_VALIDATOR_NO_WARNING'),
-  productionMode = Deno.env.get('production') === 'true'
-type WarningFunc = (type: string, errors: SyncErrorType[]) => void
+const ASYNC_VALIDATOR_NO_WARNING = Deno.env.get("ASYNC_VALIDATOR_NO_WARNING"),
+  productionMode = Deno.env.get("production") === "true";
+type WarningFunc = (type: string, errors: SyncErrorType[]) => void;
 function getWaring(): WarningFunc {
-  if (productionMode) return () => { }
+  if (productionMode) return () => { };
   // don't print warning message when in production env or node runtime
   return (type, errors) => {
     if (console?.warn && ASYNC_VALIDATOR_NO_WARNING) {
-      if (errors.every(e => typeof e === 'string')) {
+      if (errors.every((e) => typeof e === "string")) {
         console.warn(type, errors);
       }
     }
-  }
+  };
 }
 export const warning = getWaring();
 
-
+/**
+ * 将扁平化的错误消息按照字段分组后返回
+ * Group flattened error messages by fields and return
+ * @param errors
+ * @returns
+ */
 export function convertFieldsError(
   errors: ValidateError[],
 ) {
   const fields: Record<string, ValidateError[]> = {};
-  if (!errors || !errors.length) return fields;
-  errors.forEach(error => {
-    const field = error.field!;
+  if (!errors || !errors?.length) return fields;
+  errors.forEach((error) => {
+    const field = error?.field;
+    if (!field) return;
     fields[field] = fields[field] || [];
     fields[field].push(error);
   });
@@ -45,9 +50,9 @@ export function convertFieldsError(
 
 /**
  * 用于格式化,类似于c 语言 fmt
- * @param template 
- * @param args 
- * @returns 
+ * @param template
+ * @param args
+ * @returns
  */
 /* export function format(
   template: ((...args: any[]) => string) | string,
@@ -59,50 +64,48 @@ export function convertFieldsError(
 } */
 const formatRegExp = /%[sdj%]/g;
 export function format(
-  template: ((...args: any[]) => string) | string = '',
+  template: ((...args: any[]) => string) | string = "",
   ...args: any[]
 ): string {
   let i = 0;
   const len = args.length;
-  if (typeof template === 'function') {
+  if (typeof template === "function") {
     return template.apply(null, args);
   }
-  if (!(typeof template === 'string')) { return template }
-  const str = template.replace(formatRegExp, x => {
-    if (x === '%%') {
-      return '%';
+  if (!(typeof template === "string")) return template;
+  const str = template.replace(formatRegExp, (x) => {
+    if (x === "%%") {
+      return "%";
     }
     if (i >= len) {
       return x;
     }
     switch (x) {
-      case '%s':
+      case "%s":
         return String(args[i++]);
-      case '%d':
+      case "%d":
         return (Number(args[i++])).toString();
-      case '%j':
+      case "%j":
         try {
           return JSON.stringify(args[i++]);
         } catch (_) {
-          return '[Circular]';
+          return "[Circular]";
         }
       default:
         return x;
     }
   });
   return str;
-
 }
-
 
 function isNativeStringType(type?: string) {
   return (
-    type === 'string' ||
-    type === 'url' ||
-    type === 'hex' ||
-    type === 'email' ||
-    type === 'date' ||
-    type === 'pattern'
+    type === "string" ||
+    type === "url" ||
+    type === "hex" ||
+    type === "email" ||
+    type === "date" ||
+    type === "pattern"
   );
 }
 
@@ -110,10 +113,10 @@ export function isEmptyValue(value: Value, type?: string) {
   if (value === undefined || value === null) {
     return true;
   }
-  if (type === 'array' && Array.isArray(value) && !value.length) {
+  if (type === "array" && Array.isArray(value) && !value.length) {
     return true;
   }
-  if (isNativeStringType(type) && typeof value === 'string' && !value) {
+  if (isNativeStringType(type) && typeof value === "string" && !value) {
     return true;
   }
   return false;
@@ -123,139 +126,131 @@ export function isEmptyObject(obj: object) {
   return Object.keys(obj).length === 0;
 }
 
-function asyncParallelArray(
+/**
+ * 校验所有的错误,不会因为中途检测错误而出现终止
+ * Verifying all errors will not be terminated due to in-process detection errors
+ * @param arr
+ * @param recursiveVerification
+ * @param onFinished
+ */
+async function asyncParallelArray(
   arr: RuleValuePackage[],
-  func: ValidateFunc,
-  onFinished: (errors: ValidateError[]) => void,
+  recursiveVerification: ValidateFunc,
 ) {
   const results: ValidateError[] = [];
-  let total = 0;
-  const arrLength = arr.length;
-
-  function count(errors: ValidateError[]) {
-    results.push(...(errors || []));
-    total++;
-    if (total === arrLength) {
-      onFinished(results);
-    }
+  for (const iterator of arr) {
+    results.push(...(await recursiveVerification(iterator)));
   }
-
-  arr.forEach(a => {
-    func(a, count);
-  });
+  return results;
 }
 
-function asyncSerialArray(
+/**
+ * 短路验证:
+ * 遇到校验不通过立即停止剩下的校验
+ * Stop all verifications if they fail
+ * @param arr
+ * @param recursiveVerification
+ */
+async function shortCircuitValidateHandle(
   arr: RuleValuePackage[],
-  validator: ValidateFunc,
-  failureHandler: (errors: ValidateError[]) => void,
-) {
-  let index = 0;
-  const arrLength = arr.length;
-  function next(errors: ValidateError[]) {
-    if (errors && errors.length) {
-      failureHandler(errors);
-      return;
-    }
-    const original = index;
-    index = index + 1;
-    if (original < arrLength) {
-      validator(arr[original], next);
-    } else {
-      failureHandler([]);
+  recursiveVerification: ValidateFunc,
+): Promise<ValidateError[]> {
+  for (const iterator of arr) {
+    const errors = await recursiveVerification(iterator);
+    if (errors?.length) {
+      return (errors);
     }
   }
-
-  next([]);
+  return [];
 }
 
 /**
  * 将传入的属性:校验列表映射,打平并依次返回校验列表
- * @param ruleValuePackMap 
- * @returns 
+ * @param ruleValuePackMap
+ * @returns
  */
-function flattenObjArr(ruleValuePackMap: Record<string, RuleValuePackage[]>): RuleValuePackage[] {
-  return Object.entries(ruleValuePackMap).reduce((pre, [, arr]) => pre.concat(arr), [] as RuleValuePackage[]);
+function flattenObjArr(
+  ruleValuePackMap: Record<string, RuleValuePackage[]>,
+): RuleValuePackage[] {
+  return Object.values(ruleValuePackMap).reduce(
+    (pre, arr) => pre.concat(arr),
+    [] as RuleValuePackage[],
+  );
 }
 
-export class AsyncValidationError extends Error {
+/**
+ * 内部错误对象
+ */
+export class AsyncValidationError /* extends Error */ {
   constructor(
     public errors: ValidateError[],
     public fields: Record<string, ValidateError[]> | null,
   ) {
-    super('Async Validation Error');
+    // super("Async Validation Error");
   }
 }
 
 type ValidateFunc = (
   data: RuleValuePackage,
-  doIt: (errors: ValidateError[]) => void,
-) => void;
+) => ValidateError[] | Promise<ValidateError[]>;
 
-export async function asyncMap(
+export async function validateWrapper(
   ruleValuePackMap: Record<string, RuleValuePackage[]>,
   option: ValidateOption,
-  func: ValidateFunc,
+  recursiveVerification: ValidateFunc,
   onFinished: (errors: ValidateError[]) => void,
   source: Values,
 ): Promise<Values> {
   if (option.shortCircuit) {
-    return new Promise<Values>((resolve, reject) => {
-      const next = (errors: ValidateError[]) => {
-        onFinished(errors);
-        return errors.length
-          ? reject(new AsyncValidationError(errors, convertFieldsError(errors)))
-          : resolve(source);
-      };
-      const flattenArr = flattenObjArr(ruleValuePackMap);
-      asyncSerialArray(flattenArr, func, next);
-    });
-  }
-  const firstFields =
-    option.firstFields === true
-      ? Object.keys(ruleValuePackMap)
-      : option.firstFields || [];
-
-  const objArrKeys = Object.keys(ruleValuePackMap);
-  const objArrLength = objArrKeys.length;
-  let total = 0;
-  const results: ValidateError[] = [];
-  return new Promise<Values>((resolve, reject) => {
-    const next = (errors: ValidateError[]) => {
-      results.push.apply(results, errors);
-      total++;
-      if (total === objArrLength) {
-        onFinished(results);
-        return results.length
-          ? reject(
-            new AsyncValidationError(results, convertFieldsError(results)),
-          )
-          : resolve(source);
-      }
-    };
-    if (!objArrKeys.length) {
-      onFinished(results);
-      resolve(source);
+    const flattenArr = flattenObjArr(ruleValuePackMap),
+      errors = await shortCircuitValidateHandle(
+        flattenArr,
+        recursiveVerification,
+      );
+    if (errors?.length) {
+      onFinished(errors);
+      return Promise.reject(errors);
     }
-    objArrKeys.forEach(key => {
-      const arr = ruleValuePackMap[key];
-      if (firstFields.indexOf(key) !== -1) {
-        asyncSerialArray(arr, func, next);
-      } else {
-        asyncParallelArray(arr, func, next);
-      }
-    });
-  });
+    return source;
+  }
+  // 收集:当属性第一个校验规则不通过时,就跳过,继而进行下一个字段得规则校验
+  const shortCircuitRuleKeys = option.shortCircuitRule === true
+    ? Object.keys(ruleValuePackMap)
+    : option.shortCircuitRule || [];
+  const errorResults: ValidateError[] = [];
+  for (const [key, arr] of Object.entries(ruleValuePackMap)) {
+    const errors = shortCircuitRuleKeys.includes(key)
+      ? await shortCircuitValidateHandle(arr, recursiveVerification)
+      : await asyncParallelArray(arr, recursiveVerification);
+    errorResults.push(...errors);
 
+  }
+  onFinished(errorResults);
+  if (errorResults.length) {
+    return Promise.reject(new AsyncValidationError(errorResults, convertFieldsError(errorResults)))
+  }
+  return source;
 }
 
+/**
+ * 判断是否是错误对象
+ * @param obj
+ * @returns
+ */
 function isErrorObj(
   obj: ValidateError | string | (() => string),
 ): obj is ValidateError {
-  return !!(obj && (obj as ValidateError).message !== undefined);
+  if (!obj || typeof obj === "string" || "call" in obj) return false;
+  return true;
 }
 
-function getValue(value: Values, path: string[]) {
+/**
+ * 根据路径从source中取值
+ * @param value
+ * @param path
+ * @returns
+ */
+function getValueFromPath(value: Values, path: string[]) {
   let v = value;
   for (let i = 0; i < path.length; i++) {
     if (v == undefined) {
@@ -266,23 +261,30 @@ function getValue(value: Values, path: string[]) {
   return v;
 }
 
+/**
+ * 给出格式化以后的错误消息
+ * @param rule
+ * @param source
+ * @returns
+ */
 export function complementError(rule: InternalRuleItem, source: Values) {
   return (oe: ValidateError | (() => string) | string): ValidateError => {
     let fieldValue;
-    if (rule.fullFields) {
-      fieldValue = getValue(source, rule.fullFields);
+    const veisObj = isErrorObj(oe);
+    if (rule.fieldPathArr) {
+      fieldValue = getValueFromPath(source, rule.fieldPathArr);
     } else {
-      fieldValue = source[(oe as any).field || rule.fullField];
+      fieldValue = source[veisObj ? (oe.field)! : rule.fieldPathStr!];
     }
-    if (isErrorObj(oe)) {
-      oe.field = oe.field || rule.fullField;
+    if (veisObj) {
+      oe.field = oe.field || rule.fieldPathStr;
       oe.fieldValue = fieldValue;
       return oe;
     }
     return {
-      message: typeof oe === 'function' ? oe() : oe,
+      message: typeof oe === "function" ? oe() : oe,
       fieldValue,
-      field: ((oe as unknown) as ValidateError).field || rule.fullField,
+      field: rule.fieldPathStr,
     };
   };
 }
@@ -291,11 +293,14 @@ export function complementError(rule: InternalRuleItem, source: Values) {
  * 合并两级对象
  *  键深度两级以上无法深度clone
  * 参考类型:ValidateMessages,它只有两级属性
- * @param target 
- * @param source 
- * @returns 
+ * @param target
+ * @param source
+ * @returns
  */
-export function mergeMessage<T extends object>(target: T, source?: Partial<T>): T {
+export function mergeMessage<T extends object>(
+  target: T,
+  source?: Partial<T>,
+): T {
   if (!source) {
     return target;
   }
@@ -303,11 +308,11 @@ export function mergeMessage<T extends object>(target: T, source?: Partial<T>): 
     if (Object.prototype.hasOwnProperty.call(source, key)) {
       const sv = source[key],
         tv = target[key],
-        OV = typeof sv === 'object' && typeof tv === 'object'
+        OV = typeof sv === "object" && typeof tv === "object";
       Object.assign(target, {
-        [key]: OV ? { ...tv, ...sv, } : sv
-      })
+        [key]: OV ? { ...tv, ...sv } : sv,
+      });
     }
   }
-  return target
+  return target;
 }
