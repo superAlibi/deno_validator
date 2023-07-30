@@ -15,7 +15,7 @@ const callback: ValidateCallback = (errors, fields) => {
   }
 };
 Deno.test("self test", async (t) => {
-  const result = await new Schema({
+  const result = new Schema({
     v: {
       required: true,
       type: "array",

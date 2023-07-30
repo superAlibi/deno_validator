@@ -1,6 +1,6 @@
-import { InternalValidateMessages } from "./interface.ts";
+import { ValidateMessages } from "./interface.ts";
 
-export function newMessages(): InternalValidateMessages {
+export function newMessages(): ValidateMessages {
   return {
     default: "Validation error on field %s",
     required: "%s is required",
@@ -46,11 +46,6 @@ export function newMessages(): InternalValidateMessages {
     },
     pattern: {
       mismatch: "%s value %s does not match pattern %s",
-    },
-    clone() {
-      const cloned = JSON.parse(JSON.stringify(this));
-      cloned.clone = this.clone;
-      return cloned;
     },
   };
 }

@@ -1,8 +1,8 @@
 import Schema from "../src/index.ts";
 import { assertEquals } from "assert";
 
-Deno.test("date", (it) => {
-  it.step("run validation on `false`", () => {
+Deno.test("date", async (it) => {
+  await it.step("run validation on `false`", () => {
     new Schema({
       v: {
         type: "enum",

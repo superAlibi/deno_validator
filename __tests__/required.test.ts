@@ -2,8 +2,8 @@ import Schema from "../src/index.ts";
 import { assertEquals } from "assert";
 const required = true;
 
-Deno.test("date", (it) => {
-  it.step("works for array required=true", () => {
+Deno.test("date", async (it) => {
+  await it.step("works for array required=true", () => {
     new Schema({
       v: [
         {
@@ -22,7 +22,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for array required=true & custom message", () => {
+  await it.step("works for array required=true & custom message", () => {
     // allow custom message
     new Schema({
       v: [
@@ -36,12 +36,12 @@ Deno.test("date", (it) => {
         v: [1],
       },
       (errors) => {
-        expect(errors).toBeFalsy();
+        assertEquals(!errors, true);
       },
     );
   });
 
-  it.step("works for array required=false", () => {
+  await it.step("works for array required=false", () => {
     new Schema({
       v: {
         required: false,
@@ -51,12 +51,12 @@ Deno.test("date", (it) => {
         v: [],
       },
       (errors) => {
-        expect(errors).toBeFalsy();
+        assertEquals(!errors, true);
       },
     );
   });
 
-  it.step("works for string required=true", () => {
+  await it.step("works for string required=true", () => {
     new Schema({
       v: {
         required,
@@ -72,7 +72,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for string required=false", () => {
+  await it.step("works for string required=false", () => {
     new Schema({
       v: {
         required: false,
@@ -82,12 +82,12 @@ Deno.test("date", (it) => {
         v: "",
       },
       (errors) => {
-        expect(errors).toBeFalsy();
+        assertEquals(!errors, true);
       },
     );
   });
 
-  it.step("works for number required=true", () => {
+  await it.step("works for number required=true", () => {
     new Schema({
       v: {
         required,
@@ -97,12 +97,12 @@ Deno.test("date", (it) => {
         v: 1,
       },
       (errors) => {
-        expect(errors).toBeFalsy();
+        assertEquals(!errors, true);
       },
     );
   });
 
-  it.step("works for number required=false", () => {
+  await it.step("works for number required=false", () => {
     new Schema({
       v: {
         required: false,
@@ -112,12 +112,12 @@ Deno.test("date", (it) => {
         v: 1,
       },
       (errors) => {
-        expect(errors).toBeFalsy();
+        assertEquals(!errors, true);
       },
     );
   });
 
-  it.step("works for null required=true", () => {
+  await it.step("works for null required=true", () => {
     new Schema({
       v: {
         required,
@@ -133,7 +133,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for null required=false", () => {
+  await it.step("works for null required=false", () => {
     new Schema({
       v: {
         required: false,
@@ -143,12 +143,12 @@ Deno.test("date", (it) => {
         v: null,
       },
       (errors) => {
-        expect(errors).toBeFalsy();
+        assertEquals(!errors, true);
       },
     );
   });
 
-  it.step("works for undefined required=true", () => {
+  await it.step("works for undefined required=true", () => {
     new Schema({
       v: {
         required,
@@ -164,7 +164,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for undefined required=false", () => {
+  await it.step("works for undefined required=false", () => {
     new Schema({
       v: {
         required: false,
@@ -174,12 +174,12 @@ Deno.test("date", (it) => {
         v: undefined,
       },
       (errors) => {
-        expect(errors).toBeFalsy();
+        assertEquals(!errors, true);
       },
     );
   });
 
-  it.step("should support empty string message", () => {
+  await it.step("should support empty string message", () => {
     new Schema({
       v: {
         required,

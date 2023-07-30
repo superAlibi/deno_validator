@@ -1,4 +1,4 @@
-import { ExecuteRule, Value } from "../interface.ts";
+import { ExecuteRule, RuleType, Value } from "../interface.ts";
 import { format } from "../util.ts";
 import required from "./required.ts";
 import getUrlRegex from "./url.ts";
@@ -79,31 +79,21 @@ const type: ExecuteRule = (rule, value, source, errors, options) => {
     required(rule, value, source, errors, options);
     return;
   }
-  const custom = [
-    "integer",
-    "float",
-    "array",
-    "regexp",
-    "object",
-    "method",
-    "email",
-    "number",
-    "date",
-    "url",
-    "hex",
-  ];
-  const ruleType = rule.type!;
+  const custom = Object.keys(types);
+  const ruleType = rule.type! as keyof (typeof types),
+    messages = options.messages!;
+
   if (custom.includes(ruleType)) {
     if (!types[ruleType](value)) {
       errors.push(
-        format(options.messages.types[ruleType], rule.fieldPathStr, rule.type),
+        format(messages.types![ruleType], rule.fieldPathStr, rule.type),
       );
     }
     // straight typeof check
   } else if (ruleType && typeof value !== rule.type) {
     errors.push(
       format(
-        options.messages?.types?.[ruleType] || "",
+        messages.types?.[ruleType] || "",
         rule.fieldPathStr,
         rule.type,
       ),

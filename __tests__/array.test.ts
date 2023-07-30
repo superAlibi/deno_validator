@@ -1,7 +1,7 @@
 import Schema from "../src/index.ts";
 import { assertEquals } from "assert";
-Deno.test("array", (it) => {
-  it.step("works for type", () => {
+Deno.test("array", async (it) => {
+  await it.step("works for type", () => {
     new Schema({
       v: {
         type: "array",
@@ -17,7 +17,7 @@ Deno.test("array", (it) => {
     );
   });
 
-  it.step("works for type and required", () => {
+  await it.step("works for type and required", () => {
     new Schema({
       v: {
         required: true,
@@ -45,7 +45,7 @@ Deno.test("array", (it) => {
     );
   });
 
-  it.step("works for none require", () => {
+  await it.step("works for none require", () => {
     new Schema({
       v: {
         type: "array",
@@ -60,7 +60,7 @@ Deno.test("array", (it) => {
     );
   });
 
-  it.step("works for empty array", () => {
+  await it.step("works for empty array", () => {
     new Schema({
       v: {
         required: true,
@@ -77,7 +77,7 @@ Deno.test("array", (it) => {
     );
   });
 
-  it.step("works for undefined array", () => {
+  await it.step("works for undefined array", () => {
     new Schema({
       v: {
         type: "array",
@@ -92,7 +92,7 @@ Deno.test("array", (it) => {
     );
   });
 
-  it.step("works for undefined array and required", () => {
+  await it.step("works for undefined array and required", () => {
     new Schema({
       v: {
         required: true,
@@ -109,7 +109,7 @@ Deno.test("array", (it) => {
     );
   });
 
-  it.step("works for undefined array and defaultField", () => {
+  await it.step("works for undefined array and defaultField", () => {
     new Schema({
       v: {
         type: "array",
@@ -125,7 +125,7 @@ Deno.test("array", (it) => {
     );
   });
 
-  it.step("works for null array", () => {
+  await it.step("works for null array", () => {
     new Schema({
       v: {
         required: true,
@@ -142,7 +142,7 @@ Deno.test("array", (it) => {
     );
   });
 
-  it.step("works for none empty", () => {
+  await it.step("works for none empty", () => {
     new Schema({
       v: {
         required: true,
@@ -159,7 +159,7 @@ Deno.test("array", (it) => {
     );
   });
 
-  it.step("works for empty array with min", () => {
+  await it.step("works for empty array with min", () => {
     new Schema({
       v: {
         min: 1,
@@ -180,7 +180,7 @@ Deno.test("array", (it) => {
     );
   });
 
-  it.step("works for empty array with max", () => {
+  await it.step("works for empty array with max", () => {
     new Schema({
       v: {
         min: 1,

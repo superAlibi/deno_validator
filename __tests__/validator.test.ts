@@ -1,7 +1,7 @@
 import Schema from "../src/index.ts";
 import { assertEquals } from "assert";
-Deno.test("date", (it) => {
-  it.step("works", () => {
+Deno.test("date", async (it) => {
+  await it.step("works", () => {
     new Schema({
       v: [
         {
@@ -69,7 +69,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("first works", () => {
+  await it.step("first works", () => {
     new Schema({
       v: [
         {
@@ -105,8 +105,8 @@ Deno.test("date", (it) => {
     );
   });
 
-  Deno.test("date", (it) => {
-    it.step("works for true", () => {
+  await it.step("date", async (it) => {
+    await it.step("works for true", () => {
       new Schema({
         v: [
           {
@@ -158,7 +158,7 @@ Deno.test("date", (it) => {
       );
     });
 
-    it.step("works for array", () => {
+    await it.step("works for array", () => {
       new Schema({
         v: [
           {
@@ -212,8 +212,8 @@ Deno.test("date", (it) => {
     });
   });
 
-  Deno.test("date", (it) => {
-    it.step("works", () => {
+  await it.step("date", async (it) => {
+    await it.step("works", () => {
       new Schema({
         v: [
           {
@@ -270,38 +270,36 @@ Deno.test("date", (it) => {
           assertEquals(errors?.[4].message, "e5");
           assertEquals(errors?.[5].message, "e6");
           assertEquals(fields.v[0].fieldValue, 2);
-          expect(fields).toMatchInlineSnapshot(`
-            Object {
-              "v": Array [
-                [Error: e1],
-                [Error: e2],
-              ],
-              "v2": Array [
-                [Error: e3],
-              ],
-              "v3": Array [
-                Object {
-                  "field": "v3",
-                  "fieldValue": undefined,
-                  "message": "v3 fails",
-                },
-                Object {
-                  "field": "v3",
-                  "fieldValue": undefined,
-                  "message": "e5",
-                },
-                Object {
-                  "field": "v3",
-                  "fieldValue": undefined,
-                  "message": "e6",
-                },
-              ],
-            }
-          `);
+          assertEquals(fields, {
+            "v": [
+              ["e1"],
+              ["e2"],
+            ],
+            "v2": [
+              ["e3"],
+            ],
+            "v3": [
+              {
+                "field": "v3",
+                "fieldValue": undefined,
+                "message": "v3 fails",
+              },
+              {
+                "field": "v3",
+                "fieldValue": undefined,
+                "message": "e5",
+              },
+              {
+                "field": "v3",
+                "fieldValue": undefined,
+                "message": "e6",
+              },
+            ],
+          });
         });
     });
 
-    it.step("first works", () => {
+    await it.step("first works", () => {
       new Schema({
         v: [
           {
@@ -338,8 +336,8 @@ Deno.test("date", (it) => {
         });
     });
 
-    Deno.test("date", (it) => {
-      it.step("works for true", () => {
+    await it.step("date", async (it) => {
+      await it.step("works for true", () => {
         new Schema({
           v: [
             {
@@ -392,7 +390,7 @@ Deno.test("date", (it) => {
           });
       });
 
-      it.step("works for array", () => {
+      await it.step("works for array", () => {
         new Schema({
           v: [
             {
@@ -446,7 +444,7 @@ Deno.test("date", (it) => {
           });
       });
 
-      it.step("works for no rules fields", () => {
+      await it.step("works for no rules fields", () => {
         new Schema({
           v: [],
           v2: [],
@@ -456,13 +454,13 @@ Deno.test("date", (it) => {
             v2: 1,
           })
           .then((source) => {
-            expect(source).toMatchObject({ v: 2, v2: 1 });
+            assertEquals(source, { v: 2, v2: 1 });
           });
       });
     });
   });
 
-  it.step("custom validate function throw error", () => {
+  await it.step("custom validate function throw error", () => {
     new Schema({
       v: [
         {
@@ -478,7 +476,8 @@ Deno.test("date", (it) => {
           suppressValidatorError: true,
         },
       )
-      .catch(({ errors }) => {
+      .catch((error) => {
+        const { errors } = error;
         assertEquals(errors?.length, 1);
         assertEquals(errors?.[0].message, "something wrong");
       });

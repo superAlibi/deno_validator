@@ -1,7 +1,7 @@
 import Schema, { Rules } from "../src/index.ts";
 import { assertEquals } from "assert";
-Deno.test("date", (it) => {
-  it.step("deep array specific validation", () => {
+Deno.test("date", async (it) => {
+  await it.step("deep array specific validation", () => {
     new Schema({
       v: {
         required: true,
@@ -17,23 +17,21 @@ Deno.test("date", (it) => {
       },
       (errors, fields) => {
         assertEquals(errors?.length, 1);
-        expect(fields).toMatchInlineSnapshot(`
-          Object {
-            "v.0": Array [
-              Object {
-                "field": "v.0",
-                "fieldValue": 1,
-                "message": "v.0 is not a string",
-              },
-            ],
-          }
-        `);
+        assertEquals(fields, {
+          "v.0": [
+            {
+              "field": "v.0",
+              "fieldValue": 1,
+              "message": "v.0 is not a string",
+            },
+          ],
+        });
         assertEquals(errors?.[0].message, "v.0 is not a string");
       },
     );
   });
 
-  it.step("deep object specific validation", () => {
+  await it.step("deep object specific validation", () => {
     new Schema({
       v: {
         required: true,
@@ -52,24 +50,22 @@ Deno.test("date", (it) => {
       },
       (errors, fields) => {
         assertEquals(errors?.length, 1);
-        expect(fields).toMatchInlineSnapshot(`
-          Object {
-            "v.a": Array [
-              Object {
-                "field": "v.a",
-                "fieldValue": 1,
-                "message": "v.a is not a string",
-              },
-            ],
-          }
-        `);
+        assertEquals(fields, {
+          "v.a": [
+            {
+              "field": "v.a",
+              "fieldValue": 1,
+              "message": "v.a is not a string",
+            },
+          ],
+        });
         assertEquals(errors?.[0].message, "v.a is not a string");
       },
     );
   });
 
-  Deno.test("date", (it) => {
-    it.step("deep array all values validation", () => {
+  Deno.test("date", async (it) => {
+    await it.step("deep array all values validation", () => {
       new Schema({
         v: {
           required: true,
@@ -82,31 +78,29 @@ Deno.test("date", (it) => {
         },
         (errors, fields) => {
           assertEquals(errors?.length, 2);
-          expect(fields).toMatchInlineSnapshot(`
-            Object {
-              "v.0": Array [
-                Object {
-                  "field": "v.0",
-                  "fieldValue": 1,
-                  "message": "v.0 is not a string",
-                },
-              ],
-              "v.1": Array [
-                Object {
-                  "field": "v.1",
-                  "fieldValue": 2,
-                  "message": "v.1 is not a string",
-                },
-              ],
-            }
-          `);
+          assertEquals(fields, {
+            "v.0": [
+              {
+                "field": "v.0",
+                "fieldValue": 1,
+                "message": "v.0 is not a string",
+              },
+            ],
+            "v.1": [
+              {
+                "field": "v.1",
+                "fieldValue": 2,
+                "message": "v.1 is not a string",
+              },
+            ],
+          });
           assertEquals(errors?.[0].message, "v.0 is not a string");
           assertEquals(errors?.[1].message, "v.1 is not a string");
         },
       );
     });
 
-    it.step("deep transform array all values validation", () => {
+    await it.step("deep transform array all values validation", () => {
       new Schema({
         v: {
           required: true,
@@ -119,43 +113,39 @@ Deno.test("date", (it) => {
         },
         (errors, fields) => {
           assertEquals(errors?.length, 2);
-          expect(fields).toMatchInlineSnapshot(`
-            Object {
-              "v.0": Array [
-                Object {
-                  "field": "v.0",
-                  "fieldValue": 1,
-                  "message": "v.0 cannot be greater than 0",
-                },
-              ],
-              "v.1": Array [
-                Object {
-                  "field": "v.1",
-                  "fieldValue": 2,
-                  "message": "v.1 cannot be greater than 0",
-                },
-              ],
-            }
-          `);
-          expect(errors).toMatchInlineSnapshot(`
-            Array [
-              Object {
+          assertEquals(fields, {
+            "v.0": [
+              {
                 "field": "v.0",
                 "fieldValue": 1,
                 "message": "v.0 cannot be greater than 0",
               },
-              Object {
+            ],
+            "v.1": [
+              {
                 "field": "v.1",
                 "fieldValue": 2,
                 "message": "v.1 cannot be greater than 0",
               },
-            ]
-          `);
+            ],
+          });
+          assertEquals(errors, [
+            {
+              "field": "v.0",
+              "fieldValue": 1,
+              "message": "v.0 cannot be greater than 0",
+            },
+            {
+              "field": "v.1",
+              "fieldValue": 2,
+              "message": "v.1 cannot be greater than 0",
+            },
+          ]);
         },
       );
     });
 
-    it("will merge top validation", () => {
+    await it.step("will merge top validation", () => {
       const obj = {
         value: "",
         test: [
@@ -189,23 +179,21 @@ Deno.test("date", (it) => {
       };
 
       new Schema(descriptor).validate(obj, (errors) => {
-        expect(errors).toMatchInlineSnapshot(`
-          Array [
-            Object {
-              "field": "test",
-              "fieldValue": Array [
-                Object {
-                  "name": "aa",
-                },
-              ],
-              "message": "至少两项",
-            },
-          ]
-        `);
+        assertEquals(errors, [
+          {
+            "field": "test",
+            "fieldValue": [
+              {
+                "name": "aa",
+              },
+            ],
+            "message": "至少两项",
+          },
+        ]);
       });
     });
 
-    it.step("array & required works", () => {
+    await it.step("array & required works", () => {
       const descriptor: Rules = {
         testArray: {
           type: "array",
@@ -221,7 +209,7 @@ Deno.test("date", (it) => {
       });
     });
 
-    it.step("deep object all values validation", () => {
+    await it.step("deep object all values validation", () => {
       new Schema({
         v: {
           required: true,

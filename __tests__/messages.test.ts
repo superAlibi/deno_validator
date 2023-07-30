@@ -1,10 +1,10 @@
 import Schema, { ValidateMessages } from "../src/index.ts";
 import { assertEquals } from "assert";
 
-Deno.test("date", (it) => {
-  it.step("can call messages", () => {
-    const messages = {
-      required(f) {
+Deno.test("date", async (it) => {
+  await it.step("can call messages", () => {
+    const messages: Partial<ValidateMessages> = {
+      required(f: any) {
         return `${f} required!`;
       },
     };
@@ -31,9 +31,9 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("can use options.messages", () => {
+  await it.step("can use options.messages", () => {
     const messages = {
-      required(f) {
+      required(f: any) {
         return `${f} required!`;
       },
     };
@@ -62,7 +62,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("messages with parameters", () => {
+  await it.step("messages with parameters", () => {
     const messages = {
       required: "Field %s required!",
     };
@@ -77,7 +77,7 @@ Deno.test("date", (it) => {
         v: "",
       },
       (errors) => {
-        expect(errors).toBeTruthy();
+        assertEquals(!!errors, true);
         assertEquals(errors?.length, 1);
         assertEquals(errors?.[0].message, "Field v required!");
         assertEquals(Object.keys(messages).length, 1);
@@ -85,7 +85,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("messages can be without parameters", () => {
+  await it.step("messages can be without parameters", () => {
     const messages = {
       required: "required!",
     };
@@ -100,7 +100,7 @@ Deno.test("date", (it) => {
         v: "",
       },
       (errors) => {
-        expect(errors).toBeTruthy();
+        assertEquals(!!errors, true);
         assertEquals(errors?.length, 1);
         assertEquals(errors?.[0].message, "required!");
         assertEquals(Object.keys(messages).length, 1);
@@ -109,7 +109,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("message can be a function", () => {
+  await it.step("message can be a function", () => {
     const message = "this is a function";
     new Schema({
       v: {
@@ -121,7 +121,7 @@ Deno.test("date", (it) => {
         v: "", // provide empty value, this will trigger the message.
       },
       (errors) => {
-        expect(errors).toBeTruthy();
+        assertEquals(!!errors, true);
         assertEquals(errors?.length, 1);
         assertEquals(errors?.[0].message, message);
       },

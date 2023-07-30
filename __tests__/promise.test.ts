@@ -1,7 +1,7 @@
 import Schema from "../src/index.ts";
 import { assertEquals } from "assert";
-Deno.test("date", (it) => {
-  it.step("works", () => {
+Deno.test("date", async (it) => {
+  await it.step("works", () => {
     new Schema({
       v: [
         {
@@ -35,7 +35,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("first works", () => {
+  await it.step("first works", () => {
     new Schema({
       v: [
         {
@@ -71,8 +71,8 @@ Deno.test("date", (it) => {
     );
   });
 
-  Deno.test("date", (it) => {
-    it.step("works for true", () => {
+  Deno.test("date", async (it) => {
+    await it.step("works for true", () => {
       new Schema({
         v: [
           {
@@ -124,7 +124,7 @@ Deno.test("date", (it) => {
       );
     });
 
-    it.step("works for array", () => {
+    await it.step("works for array", () => {
       new Schema({
         v: [
           {
@@ -198,10 +198,10 @@ Deno.test("date", (it) => {
         },
       );
     });
-    it("Whether to remove the 'Uncaught (in promise)' warning", async () => {
+    await it.step("Whether to remove the 'Uncaught (in promise)' warning", () => {
       let allCorrect = true;
       try {
-        await new Schema({
+        new Schema({
           async: {
             asyncValidator(rule, value) {
               return new Promise((resolve, reject) => {

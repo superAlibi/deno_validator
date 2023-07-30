@@ -1,7 +1,7 @@
 import Schema from "../src/index.ts";
 import { assertEquals } from "assert";
-Deno.test("date", (it) => {
-  it.step("works for empty string", () => {
+Deno.test("date", async (it) => {
+  await it.step("works for empty string", () => {
     new Schema({
       v: {
         type: "url",
@@ -16,7 +16,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for ip url", () => {
+  await it.step("works for ip url", () => {
     new Schema({
       v: {
         type: "url",
@@ -31,7 +31,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for required empty string", () => {
+  await it.step("works for required empty string", () => {
     new Schema({
       v: {
         type: "url",
@@ -48,7 +48,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for type url", () => {
+  await it.step("works for type url", () => {
     new Schema({
       v: {
         type: "url",
@@ -63,7 +63,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for type url has query", () => {
+  await it.step("works for type url has query", () => {
     new Schema({
       v: {
         type: "url",
@@ -78,7 +78,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for type url has hash", () => {
+  await it.step("works for type url has hash", () => {
     new Schema({
       v: {
         type: "url",
@@ -93,7 +93,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for type url has query and has", () => {
+  await it.step("works for type url has query and has", () => {
     new Schema({
       v: {
         type: "url",
@@ -108,7 +108,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for type url has multi hyphen", () => {
+  await it.step("works for type url has multi hyphen", () => {
     new Schema({
       v: {
         type: "url",
@@ -123,7 +123,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for type not a valid url", () => {
+  await it.step("works for type not a valid url", () => {
     new Schema({
       v: {
         type: "url",
@@ -139,7 +139,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("support skip schema", () => {
+  await it.step("support skip schema", () => {
     new Schema({
       v: {
         type: "url",

@@ -1,4 +1,3 @@
-
 // import { format } from 'https://deno.land/std@0.195.0/assert/_format.ts';
 import {
   InternalRuleItem,
@@ -16,7 +15,7 @@ const ASYNC_VALIDATOR_NO_WARNING = Deno.env.get("ASYNC_VALIDATOR_NO_WARNING"),
   productionMode = Deno.env.get("production") === "true";
 type WarningFunc = (type: string, errors: SyncErrorType[]) => void;
 function getWaring(): WarningFunc {
-  if (productionMode) return () => { };
+  if (productionMode) return () => {};
   // don't print warning message when in production env or node runtime
   return (type, errors) => {
     if (console?.warn && ASYNC_VALIDATOR_NO_WARNING) {
@@ -198,37 +197,44 @@ export async function validateWrapper(
   ruleValuePackMap: Record<string, RuleValuePackage[]>,
   option: ValidateOption,
   recursiveVerification: ValidateFunc,
-  onFinished: (errors: ValidateError[]) => void,
   source: Values,
+  onFinished?: (errors: ValidateError[]) => void,
 ): Promise<Values> {
+  const errors: ValidateError[] = [];
   if (option.shortCircuit) {
-    const flattenArr = flattenObjArr(ruleValuePackMap),
-      errors = await shortCircuitValidateHandle(
+    const flattenArr = flattenObjArr(ruleValuePackMap);
+    errors.push(
+      ...await shortCircuitValidateHandle(
         flattenArr,
         recursiveVerification,
-      );
-    if (errors?.length) {
-      onFinished(errors);
-      return Promise.reject(errors);
-    }
-    return source;
-  }
-  // 收集:当属性第一个校验规则不通过时,就跳过,继而进行下一个字段得规则校验
-  const shortCircuitRuleKeys = option.shortCircuitRule === true
-    ? Object.keys(ruleValuePackMap)
-    : option.shortCircuitRule || [];
-  const errorResults: ValidateError[] = [];
-  for (const [key, arr] of Object.entries(ruleValuePackMap)) {
-    const errors = shortCircuitRuleKeys.includes(key)
-      ? await shortCircuitValidateHandle(arr, recursiveVerification)
-      : await asyncParallelArray(arr, recursiveVerification);
-    errorResults.push(...errors);
+      ),
+    );
 
+    return source;
+  } else {
+    // 收集:当属性第一个校验规则不通过时,就跳过,继而进行下一个字段得规则校验
+    const shortCircuitRuleKeys = option.shortCircuitRule === true
+      ? Object.keys(ruleValuePackMap)
+      : option.shortCircuitRule || [];
+    const errorResults: ValidateError[] = [];
+    for (const [key, arr] of Object.entries(ruleValuePackMap)) {
+      const errors = shortCircuitRuleKeys.includes(key)
+        ? await shortCircuitValidateHandle(arr, recursiveVerification)
+        : await asyncParallelArray(arr, recursiveVerification);
+      errorResults.push(...errors);
+    }
   }
-  onFinished(errorResults);
+  if (errors?.length && onFinished) {
+    onFinished(errors);
+  } else if (errors.length && !onFinished) {
+    return Promise.reject(
+      new AsyncValidationError(errors, convertFieldsError(errors)),
+    );
+  }
+  /* onFinished(errorResults);
   if (errorResults.length) {
     return Promise.reject(new AsyncValidationError(errorResults, convertFieldsError(errorResults)))
-  }
+  } */
   return source;
 }
 
@@ -240,8 +246,9 @@ export async function validateWrapper(
 function isErrorObj(
   obj: ValidateError | string | (() => string),
 ): obj is ValidateError {
-  if (!obj || typeof obj === "string" || "call" in obj) return false;
-  return true;
+  if (typeof obj === "string" || typeof obj === "function") return false;
+
+  return !!obj.message;
 }
 
 /**

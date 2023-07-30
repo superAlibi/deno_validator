@@ -1,8 +1,8 @@
 import Schema from "../src/index.ts";
 import { assertEquals } from "assert";
 Deno.test("date", async (it) => {
-  await it.step("required works for undefined", async () => {
-    await new Schema({
+  await it.step("required works for undefined", () => {
+    new Schema({
       v: {
         type: "date",
         required: true,
@@ -12,14 +12,16 @@ Deno.test("date", async (it) => {
         v: undefined,
       },
       (errors) => {
-        assertEquals(errors?.length || '', 1);
-        assertEquals(errors?.[0].message || '', "v is required");
+        assertEquals(errors?.length || "", 1);
+        assertEquals(errors?.[0].message || "", "v is required");
       },
-    );
+    ).then((v) => {
+      console.log(v);
+    });
   });
 
-  await it.step('required works for ""', async () => {
-    await new Schema({
+  await it.step('required works for ""', () => {
+    new Schema({
       v: {
         type: "date",
         required: true,
@@ -35,8 +37,8 @@ Deno.test("date", async (it) => {
     );
   });
 
-  await it.step("required works for non-date type", async () => {
-    await new Schema({
+  await it.step("required works for non-date type", () => {
+    new Schema({
       v: {
         type: "date",
         required: true,
@@ -53,7 +55,7 @@ Deno.test("date", async (it) => {
   });
 
   await it.step('required works for "timestamp"', async () => {
-    await new Schema({
+    new Schema({
       v: {
         type: "date",
         required: true,

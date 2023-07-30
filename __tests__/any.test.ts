@@ -33,14 +33,17 @@ const testRequiredErrorFor = (value: unknown) => () => {
   );
 };
 
-Deno.test("any", (ctx) => {
-  ctx.step("allows null", testNoErrorsFor(null));
-  ctx.step("allows undefined", testNoErrorsFor(undefined));
-  ctx.step("allows strings", testNoErrorsFor("foo"));
-  ctx.step("allows numbers", testNoErrorsFor(1));
-  ctx.step("allows booleans", testNoErrorsFor(false));
-  ctx.step("allows arrays", testNoErrorsFor([]));
-  ctx.step("allows objects", testNoErrorsFor({}));
-  ctx.step("rejects undefined when required", testRequiredErrorFor(undefined));
-  ctx.step("rejects null when required", testRequiredErrorFor(null));
+Deno.test("any", async (ctx) => {
+  await ctx.step("allows null", testNoErrorsFor(null));
+  await ctx.step("allows undefined", testNoErrorsFor(undefined));
+  await ctx.step("allows strings", testNoErrorsFor("foo"));
+  await ctx.step("allows numbers", testNoErrorsFor(1));
+  await ctx.step("allows booleans", testNoErrorsFor(false));
+  await ctx.step("allows arrays", testNoErrorsFor([]));
+  await ctx.step("allows objects", testNoErrorsFor({}));
+  await ctx.step(
+    "rejects undefined when required",
+    testRequiredErrorFor(undefined),
+  );
+  await ctx.step("rejects null when required", testRequiredErrorFor(null));
 });

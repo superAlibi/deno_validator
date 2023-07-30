@@ -1,4 +1,5 @@
 import {
+  AsyncValidationError,
   complementError,
   convertFieldsError,
   format,
@@ -11,20 +12,16 @@ import { messages as defaultMessages, newMessages } from "./messages.ts";
 import {
   ExecuteValidator,
   InternalRuleItem,
-  InternalValidateMessages,
   Rule,
   RuleItem,
   RuleValuePackage,
   SyncErrorType,
   ValidateCallback,
   ValidateError,
-  ValidateFieldsError,
   ValidateMessages,
   ValidateOption,
-  ValidateResult,
   Values,
 } from "./interface.ts";
-import type from "./rule/type.ts";
 export * from "./interface.ts";
 
 /**
@@ -52,7 +49,7 @@ class Schema {
 
   // ======================== Instance ========================
   rules: Record<string, RuleItem[]> = {};
-  _messages: InternalValidateMessages = defaultMessages;
+  _messages: ValidateMessages = defaultMessages;
 
   constructor(descriptor: Record<string, Rule>) {
     this.define(descriptor);
@@ -76,7 +73,7 @@ class Schema {
    * @param messages 可选的重写模板消息
    * @returns
    */
-  messages(messages?: ValidateMessages) {
+  messages(messages?: Partial<ValidateMessages>) {
     if (messages) {
       this._messages = mergeMessage(newMessages(), messages);
     }
@@ -137,13 +134,13 @@ class Schema {
 
   validate(
     source_: Values,
-    o: ValidateOption | ValidateCallback = {},
-    oc: ValidateCallback = () => { },
+    o?: ValidateOption | ValidateCallback,
+    oc?: ValidateCallback,
   ): Promise<Values> {
     const source: Values = source_,
       oisf = typeof o === "function",
-      options: ValidateOption = oisf ? {} : o,
-      callback: ValidateCallback = oisf ? o : oc;
+      options = oisf ? {} : o || {},
+      callback = oisf ? o : oc;
 
     /**
      * 没有规则,则表示全部通过
@@ -167,10 +164,16 @@ class Schema {
     );
 
     function onValidatorFinished(errors: ValidateError[]) {
-      if (!errors?.length) {
-        return callback(null, source);
+      if (callback) {
+        if (errors?.length) {
+          return callback(errors, convertFieldsError(errors));
+        } else {
+          return callback(null, source);
+        }
       } else {
-        return callback(errors, convertFieldsError(errors));
+        if (errors.length) {
+          return Promise.reject(errors);
+        }
       }
     }
 
@@ -296,7 +299,7 @@ class Schema {
                 : rule.message || `${rule.fieldPathStr || rule.field} fails`,
             );
           } else if (Array.isArray(res)) {
-            return cb(res)
+            return cb(res);
           } else if (res instanceof Error) {
             return cb(res.message);
           }
@@ -304,14 +307,19 @@ class Schema {
         } catch (error) {
           console.error(error);
           // rethrow to report error
-          if (!options.suppressValidatorError) {
-            return Promise.reject(error);
+          if (options.suppressValidatorError) {
+            const errors = await cb(error);
+            const result = new AsyncValidationError(
+              errors,
+              convertFieldsError(errors),
+            );
+            return Promise.reject(result);
           }
           return cb(error.message);
         }
       },
-      onValidatorFinished,
       source,
+      onValidatorFinished,
     );
   }
 

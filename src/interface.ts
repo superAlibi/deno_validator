@@ -76,7 +76,7 @@ export interface RuleItem {
     options: ValidateOption,
   ) => SyncValidateResult | void | Promise<SyncValidateResult | void>;
 }
-
+export type Rules = Record<string, Rule>;
 export type Rule = RuleItem | RuleItem[];
 
 /**
@@ -119,7 +119,7 @@ export type ExecuteValidator = (
 ) => void;
 
 // >>>>> Message
-type ValidateMessage<T extends Array<unknown> = unknown[]> =
+type ValidateMessage<T extends Array<unknown> = []> =
   | string
   | ((...args: T) => string);
 type FullField = string | undefined;
@@ -128,17 +128,23 @@ type Pattern = string | RegExp | undefined;
 type Range = number | undefined;
 type Type = string | undefined;
 
+interface ValidateMessagesNSArr {
+  len?: ValidateMessage<[FullField, Range]>;
+  min?: ValidateMessage<[FullField, Range]>;
+  max?: ValidateMessage<[FullField, Range]>;
+  range?: ValidateMessage<[FullField, Range, Range]>;
+}
 export interface ValidateMessages {
-  default?: ValidateMessage;
-  required?: ValidateMessage<[FullField]>;
-  enum?: ValidateMessage<[FullField, EnumString]>;
+  default: ValidateMessage;
+  required: ValidateMessage<[FullField]>;
+  enum: ValidateMessage<[FullField, EnumString]>;
   whitespace?: ValidateMessage<[FullField]>;
-  date?: {
+  date: {
     format?: ValidateMessage;
     parse?: ValidateMessage;
     invalid?: ValidateMessage;
   };
-  types?: {
+  types: {
     string?: ValidateMessage<[FullField, Type]>;
     method?: ValidateMessage<[FullField, Type]>;
     array?: ValidateMessage<[FullField, Type]>;
@@ -153,31 +159,12 @@ export interface ValidateMessages {
     url?: ValidateMessage<[FullField, Type]>;
     hex?: ValidateMessage<[FullField, Type]>;
   };
-  string?: {
-    len?: ValidateMessage<[FullField, Range]>;
-    min?: ValidateMessage<[FullField, Range]>;
-    max?: ValidateMessage<[FullField, Range]>;
-    range?: ValidateMessage<[FullField, Range, Range]>;
-  };
-  number?: {
-    len?: ValidateMessage<[FullField, Range]>;
-    min?: ValidateMessage<[FullField, Range]>;
-    max?: ValidateMessage<[FullField, Range]>;
-    range?: ValidateMessage<[FullField, Range, Range]>;
-  };
-  array?: {
-    len?: ValidateMessage<[FullField, Range]>;
-    min?: ValidateMessage<[FullField, Range]>;
-    max?: ValidateMessage<[FullField, Range]>;
-    range?: ValidateMessage<[FullField, Range, Range]>;
-  };
-  pattern?: {
+  string: ValidateMessagesNSArr;
+  number: ValidateMessagesNSArr;
+  array: ValidateMessagesNSArr;
+  pattern: {
     mismatch?: ValidateMessage<[FullField, Value, Pattern]>;
   };
-}
-
-export interface InternalValidateMessages extends ValidateMessages {
-  clone: () => InternalValidateMessages;
 }
 
 // >>>>> Values

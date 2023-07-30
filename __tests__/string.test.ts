@@ -1,7 +1,7 @@
 import Schema from "../src/index.ts";
 import { assertEquals } from "assert";
-Deno.test("date", (it) => {
-  it.step("works for none require", () => {
+Deno.test("date", async (it) => {
+  await it.step("works for none require", () => {
     let data = {
       v: "",
     };
@@ -11,11 +11,11 @@ Deno.test("date", (it) => {
       },
     }).validate(data, (errors, d) => {
       assertEquals(errors, null);
-      expect(d).toEqual(data);
+      assertEquals(d, data);
     });
   });
 
-  it.step("works for empty string", () => {
+  await it.step("works for empty string", () => {
     new Schema({
       v: {
         required: true,
@@ -32,7 +32,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for undefined string", () => {
+  await it.step("works for undefined string", () => {
     new Schema({
       v: {
         required: true,
@@ -49,7 +49,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for null string", () => {
+  await it.step("works for null string", () => {
     new Schema({
       v: {
         required: true,
@@ -66,7 +66,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for message", () => {
+  await it.step("works for message", () => {
     new Schema({
       v: {
         required: true,
@@ -84,7 +84,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for none empty", () => {
+  await it.step("works for none empty", () => {
     new Schema({
       v: {
         required: true,
@@ -101,7 +101,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for whitespace empty", () => {
+  await it.step("works for whitespace empty", () => {
     new Schema({
       v: {
         required: true,

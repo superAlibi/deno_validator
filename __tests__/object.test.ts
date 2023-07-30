@@ -1,8 +1,8 @@
 import Schema from "../src/index.ts";
 import { assertEquals } from "assert";
 
-Deno.test("date", (it) => {
-  it.step("works for the required object with fields in case of empty string", () => {
+Deno.test("date", async (it) => {
+  await it.step("works for the required object with fields in case of empty string", () => {
     new Schema({
       v: {
         type: "object",

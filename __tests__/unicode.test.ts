@@ -1,7 +1,7 @@
 import Schema from "../src/index.ts";
 import { assertEquals } from "assert";
-Deno.test("date", (it) => {
-  it.step("works for unicode U+0000 to U+FFFF ", () => {
+Deno.test("date", async (it) => {
+  await it.step("works for unicode U+0000 to U+FFFF ", () => {
     new Schema({
       v: {
         type: "string",
@@ -17,7 +17,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for unicode gt U+FFFF ", () => {
+  await it.step("works for unicode gt U+FFFF ", () => {
     new Schema({
       v: {
         type: "string",
@@ -33,7 +33,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("Rich Text Format", () => {
+  await it.step("Rich Text Format", () => {
     new Schema({
       v: {
         type: "string",

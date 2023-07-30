@@ -1,8 +1,8 @@
 import Schema from "../src/index.ts";
 import { assertEquals } from "assert";
 
-Deno.test("date", (it) => {
-  it.step("works", () => {
+Deno.test("date", async (it) => {
+  await it.step("works", () => {
     new Schema({
       v: {
         type: "number",
@@ -18,7 +18,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("works for no-required", () => {
+  await it.step("works for no-required", () => {
     new Schema({
       v: {
         type: "number",
@@ -28,12 +28,12 @@ Deno.test("date", (it) => {
         v: undefined,
       },
       (errors) => {
-        expect(errors).toBeFalsy();
+        assertEquals(!errors, true);
       },
     );
   });
 
-  it.step("works for no-required in case of empty string", () => {
+  await it.step("works for no-required in case of empty string", () => {
     new Schema({
       v: {
         type: "number",
@@ -44,12 +44,12 @@ Deno.test("date", (it) => {
         v: "",
       },
       (errors) => {
-        expect(errors).toBeFalsy();
+        assertEquals(!errors, true);
       },
     );
   });
 
-  it.step("works for required", () => {
+  await it.step("works for required", () => {
     new Schema({
       v: {
         type: "number",
@@ -66,7 +66,7 @@ Deno.test("date", (it) => {
     );
   });
 
-  it.step("transform does not change value", () => {
+  await it.step("transform does not change value", () => {
     const value = {
       v: "1",
     };
@@ -76,15 +76,15 @@ Deno.test("date", (it) => {
         transform: Number,
       },
     }).validate(value, (errors, data) => {
-      expect(data).toEqual({
+      assertEquals(data, {
         v: 1,
       });
       assertEquals(value.v, "1");
-      expect(errors).toBeFalsy();
+      assertEquals(!errors, true);
     });
   });
 
-  it.step("return transformed value in promise.then", () => {
+  await it.step("return transformed value in promise.then", () => {
     const value = {
       v: "1",
     };
@@ -96,10 +96,10 @@ Deno.test("date", (it) => {
     })
       .validate(value, (errors) => {
         assertEquals(value.v, "1");
-        expect(errors).toBeFalsy();
+        assertEquals(!errors, true);
       })
       .then((source) => {
-        expect(source).toEqual({
+        assertEquals(source, {
           v: 1,
         });
       });
