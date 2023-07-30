@@ -51,9 +51,9 @@ export interface RuleItem {
   type?: RuleType; // default type is 'string'
   required?: boolean;
   pattern?: RegExp | string;
-  min?: number; // Range of type 'string' and 'array'
-  max?: number; // Range of type 'string' and 'array'
-  len?: number; // Length of type 'string' and 'array'
+  min?: number; // Range of type 'string','number' and 'array'
+  max?: number; // Range of type 'string','number' and 'array'
+  len?: number; // Length of type 'string','number' and 'array'
   enum?: Array<string | number | boolean | null | undefined>; // possible values of type 'enum'
   whitespace?: boolean;
   fields?: Record<string, Rule>; // ignore when without required
