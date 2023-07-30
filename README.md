@@ -1,11 +1,11 @@
 # async-validator
 
-[![NPM version][npm-image]][npm-url] [![build status][travis-image]][travis-url]
+<!-- [![NPM version][npm-image]][npm-url] [![build status][travis-image]][travis-url]
 [![Test coverage][coveralls-image]][coveralls-url]
-[![node version][node-image]][node-url]
-[![npm download][download-image]][download-url]
-[![npm bundle size (minified + gzip)][bundlesize-image]][bundlesize-url]
-
+[![node version][node-image]][node-url] -->
+<!-- [![npm download][download-image]][download-url]
+[![npm bundle size (minified + gzip)][bundlesize-image]][bundlesize-url] -->
+<!-- 
 [npm-image]: https://img.shields.io/npm/v/async-validator.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/async-validator
 [travis-image]: https://app.travis-ci.com/yiminghe/async-validator.svg?branch=master
@@ -17,25 +17,36 @@
 [download-image]: https://img.shields.io/npm/dm/async-validator.svg?style=flat-square
 [download-url]: https://npmjs.org/package/async-validator
 [bundlesize-image]: https://img.shields.io/bundlephobia/minzip/async-validator.svg?label=gzip%20size
-[bundlesize-url]: https://bundlephobia.com/result?p=async-validator
+[bundlesize-url]: https://bundlephobia.com/result?p=async-validator -->
 
 Validate form asynchronous. A variation of
-https://github.com/freeformsystems/async-validate
+https://github.com/yiminghe/async-validator
 
-## Install
 
-```bash
-npm i async-validator
-```
 
 ## Usage
+Before using, please add the following content to the imports option of the deno.json file in the root directory of your deno project project project
+```json
+{
+  "imports": {
+    // your other reference...
+    "assert": "https://deno.land/std@0.195.0/assert/mod.ts",
+    "fmt": "https://deno.land/std@0.195.0/fmt/printf.ts",
+    "validate":"https://raw.githubusercontent.com/superAlibi/deno_validator/master/src/index.ts"
+  }
+}
+```
+> The reference alias named 'assert' refers to the dependency of the internal unit test reference.
+>
+> The alias' fmt 'is that some error messages built in the project need to be formatted, and the deno standard library string formatting tool is used
+
 
 Basic usage involves defining a descriptor, assigning it to a schema and passing
 the object to be validated and a callback function to the `validate` method of
 the schema:
 
 ```js
-import Schema from "async-validator";
+import Schema from "validate";
 const descriptor = {
   name: {
     type: "string",
